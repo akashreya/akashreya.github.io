@@ -1,0 +1,449 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap");
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  html {
+    @apply transition-colors duration-300 scroll-smooth;
+  }
+
+  body {
+    @apply bg-sky-100 dark:bg-slate-700 text-sm font-['Poppins'] font-normal select-none overflow-x-hidden bg-cover bg-fixed bg-center dark:text-white transition-all duration-300;
+  }
+
+  .hamburger-button {
+    @apply lg:hidden fixed top-5 left-2 z-50 bg-slate-800 text-white px-3 py-2 rounded;
+  }
+  .main-content {
+    @apply flex-1 p-4 lg:p-8 w-full transition-all ease-in-out duration-300 lg:ml-90;
+  }
+  .hero {
+    @apply min-h-screen flex flex-col items-center justify-center px-4 py-12 relative;
+  }
+
+  .hero .hero-content {
+    @apply flex relative my-24;
+  }
+
+  .hero .hero-content .hero-item {
+    @apply py-16 pb-7 flex flex-col md:flex-col lg:flex-row relative;
+  }
+
+  .hero .hero-content .hero-detail {
+    @apply max-w-[300px] pr-8 md:pr-0 text-right inset-0;
+  }
+
+  .hero .hero-content .hero-detail .hero-detail {
+    @apply mb-8 text-left md:text-right text-xl md:text-2xl lg:text-3xl leading-[30px];
+  }
+
+  .hero .hero-content .hero-title {
+    @apply -mt-16 -mr-28 mb-8 text-5xl font-extrabold tracking-[0.02rem] z-5 leading-[72px] font-['Quicksand'] bg-gradient-to-b from-green-500 to-fuchsia-600 bg-clip-text text-transparent;
+  }
+
+  .hero .hero-content .hero-title span {
+    @apply max-w-[400px] inline-grid;
+  }
+
+  .hero .hero-content .hero-name {
+    @apply min-w-[300px] flex items-end relative;
+  }
+
+  .hero .hero-content .hero-name h3 {
+    @apply mb-0 pb-4 text-[36px] font-light leading-[42px] relative lg:text-[42px] lg:leading-[50px];
+  }
+
+  .hero .hero-content .hero-name h3 span {
+    @apply max-w-[300px] inline-grid text-purple-500;
+  }
+
+  .hero .hero-content .hero-detail .hero-title {
+    @apply relative -top-7 -right-9 mb-8 text-[35px] font-extrabold tracking-[0.02rem] z-5 leading-[60px] lg:text-[55px];
+  }
+
+  .hero .hero-content .hero-detail .hero-title span {
+    @apply max-w-[400px] inline-grid;
+  }
+
+  .hero .hero-content .hero-detail .hero-title .name {
+    @apply text-[#ff6f6f];
+  }
+
+  .hero .hero-content .hero-img {
+    @apply max-w-[300px] mx-8 relative rounded-4xl 2xl:max-w-[350px];
+  }
+
+  .hero .hero-content .hero-img::before {
+    content: "";
+    @apply w-full h-full absolute top-4 left-4 border border-solid border-purple-500 rounded-lg opacity-30;
+  }
+
+  .hero .hero-content .hero-img .card {
+    @apply relative rounded-4xl overflow-hidden text-ellipsis shadow-lg inline-block transform [transform-style:preserve-3d] perspective-[1000px];
+  }
+
+  .hero .hero-content .hero-img .card img {
+    @apply w-full transition-all duration-300 grayscale ease-in-out;
+  }
+
+  .hero .hero-content .hero-img .card:hover {
+    @apply shadow-lg z-5 transition-transform scale-105 duration-300 opacity-90;
+  }
+
+  .hero .hero-content .hero-img .card:hover img {
+    @apply grayscale-0;
+  }
+
+  /* Common */
+
+  .component {
+    @apply min-h-screen w-full flex flex-col items-center justify-center p-4 relative;
+  }
+  .section-heading {
+    @apply text-center;
+  }
+  .section-heading h2 {
+    @apply absolute inset-x-0 top-0 not-only-of-type:mb-10 py-12 text-4xl md:text-5xl lg:text-6xl leading-tight lg:leading-none font-bold font-['Quicksand'] bg-gradient-to-b from-green-500 to-fuchsia-900 bg-clip-text text-transparent;
+  }
+  .section-heading h2 span {
+    @apply text-[#ff6f6f];
+  }
+
+  /* Common  End*/
+
+  /* About Section*/
+
+  .about-details {
+    @apply relative w-full px-4 inset-0 mx-2;
+  }
+  .about-detail {
+    @apply px-10 mx-4;
+  }
+  .about-detail h4 {
+    @apply text-xl md:text-3xl lg:text-4xl leading-normal lg:leading-7 font-bold font-['Poppins'];
+  }
+
+  .about-detail .about-text {
+    @apply italic text-base md:text-2xl  lg:text-3xl leading-normal lg:leading-15 font-normal font-['Poppins'];
+  }
+  /* About Section Ended*/
+
+  /* Skills Section*/
+  .skills-bar {
+    @apply grid grid-cols-6 md:grid-cols-6 lg:grid-cols-10
+      justify-evenly gap-4 
+      absolute inset-x-0 top-30
+      m-4 p-8 md:p-16 lg:p-26;
+  }
+
+  /* Skill Component */
+  .skill {
+    @apply flex flex-col items-center justify-center 
+    m-2 p-2 hover:scale-110 transition-all 
+    text-center duration-300 ease-in-out;
+  }
+
+  .skill img {
+    @apply min-h-[30px] min-w-[30px] max-w-[40px] max-h-[40px];
+  }
+
+  .skill h6 {
+    @apply relative text-center text-xs md:text-sm lg:text-xl leading-tight font-semibold font-['Poppins'];
+  }
+  /* Skill Component End*/
+  /* Skills Section End */
+
+  /* Portfolio Component */
+  .projects-outer {
+    @apply relative inset-x-0 top-10  m-18 p-8 w-full;
+  }
+
+  .projects-react-tabs {
+    @apply justify-center;
+  }
+
+  .projects-list-outer {
+    @apply h-full p-10;
+  }
+
+  .projects-list-outer .projects-list-inner {
+    @apply px-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-15 justify-center;
+  }
+
+  .no-projects {
+    @apply text-gray-400 text-lg italic text-center py-16 col-span-2;
+  }
+
+  .project-box {
+    @apply transition-all duration-300 ease-in-out
+         w-full h-[350px] m-8 p-8 dark:bg-gray-800
+         cursor-default 
+         rounded-[15px]
+         shadow-[0_0_15px_0_rgba(0,0,0,0.06)] 
+         border border-[#dfdfdf];
+  }
+
+  .project-box h3 {
+    @apply mt-0 text-[20px] font-semibold;
+  }
+
+  .project-box .links {
+    @apply mb-[10px] text-[#999] cursor-pointer;
+  }
+
+  .project-box a {
+    @apply text-[14px] text-[#999] font-light;
+  }
+
+  .project-box a:hover {
+    color: #ff6f6f;
+  }
+
+  .project-box p {
+    @apply text-[14px];
+  }
+
+  .project-box p a {
+    @apply text-[#8c6fff];
+  }
+
+  .project-box .project-info {
+    @apply mt-[30px] flex;
+  }
+
+  .project-box img {
+    @apply block;
+  }
+
+  .portfolio-tabs {
+    @apply w-full p-4 text-center;
+  }
+
+  .portfolio-tabs ul {
+    @apply flex flex-wrap h-full gap-2 justify-center text-sm sm:text-base;
+  }
+
+  .portfolio-tabs ul li {
+    @apply inline-block cursor-pointer font-['Poppins'] hover:text-violet-500
+         m-2 p-4 md:m-4 md:p-6 lg:m-4
+         text-sm md:text-2xl lg:text-3xl
+         transition-all duration-400 uppercase ease-in-out;
+  }
+
+  .project-box .portfolio-img {
+    @apply transition-all duration-300 ease-in-out 
+         w-[200px] overflow-hidden 
+         rounded-[15px] relative 
+         shadow-[0_0_15px_0_rgba(0,0,0,0.09)];
+  }
+
+  .project-modal-bg {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50;
+  }
+
+  .project-modal {
+    @apply bg-white dark:bg-slate-800 p-6 rounded-[20px] max-w-[600px] w-full shadow-lg;
+  }
+
+  .project-modal h3 {
+    @apply text-[16px] font-bold mb-4;
+  }
+
+  .project-modal p {
+    @apply mb-6;
+  }
+
+  .project-modal button {
+    @apply cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-[15px] hover:bg-blue-900;
+  }
+
+  .project-box .portfolio-img a {
+    @apply h-full w-full 
+         bg-cover bg-center bg-no-repeat bg-inherit 
+         block relative;
+  }
+
+  .project-box .portfolio-img img {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .project-box .portfolio-img .overlay {
+    @apply transition-all duration-300 ease-in-out
+         w-full h-full absolute top-0 left-0
+         bg-black backdrop-opacity-50
+         flex items-center justify-center
+         text-[40px] text-white
+         opacity-0;
+  }
+
+  .project-box:hover .portfolio-img {
+    @apply group-hover:shadow-none;
+  }
+
+  .project-box .project-detail {
+    @apply pl-[30px];
+  }
+
+  .project-box .project-detail ul {
+    @apply m-0 p-0;
+  }
+
+  .project-box .project-detail ul li {
+    @apply py-[5px] font-['Poppins'] text-2xl;
+  }
+
+  /* Portfolio Component End*/
+
+  /* Contact Component Start*/
+
+  .contact-me-content {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 mt-25 gap-10 w-full;
+  }
+
+  .contact-socials {
+    @apply w-full mb-[25px] justify-center m-2 md:m-4 lg:m-6 p-4;
+  }
+
+  .contact-box {
+    @apply mb-[30px] p-[30px] flex rounded-[15px] 
+         shadow-[0_0_15px_0_rgba(0,0,0,0.06)] relative overflow-hidden 
+         border border-[#dfdfdf];
+  }
+
+  .contact-form {
+    @apply w-full mb-[25px] justify-center m-2 md:m-4 lg:m-6 p-4;
+  }
+
+  .contact-box::before {
+    @apply transition-all duration-300 ease-in-out bg-[rgba(0,0,0,0.06)];
+    content: "";
+    width: 150px;
+    height: 150px;
+    position: absolute;
+    top: -86%;
+    right: -2%;
+    border-radius: 15px;
+  }
+
+  .contact-box::after {
+    @apply transition-all duration-300 ease-in-out bg-[rgba(0,0,0,0.06)];
+    content: "";
+    width: 150px;
+    height: 150px;
+    position: absolute;
+    top: -15%;
+    right: -20%;
+    border-radius: 15px;
+  }
+  .contact-box:hover::before {
+    top: -70%;
+    right: -10%;
+  }
+
+  .contact-box:hover::after {
+    top: -38%;
+    right: -20%;
+  }
+
+  .contact-box .contact-detail {
+    @apply flex items-center;
+  }
+
+  .contact-box .contact-info h3 {
+    @apply text-xl lg:text-4xl text-[#ff6f6f];
+  }
+
+  .contact-box p {
+    @apply text-sm lg:text-3xl;
+  }
+
+  .contact-icon {
+    @apply w-[70px] min-w-[70px] h-[70px] mr-[15px] flex flex-col items-center justify-center rounded-full border border-[#dfdfdf] transform-3d transform-border;
+  }
+
+  .contact-box .contact-icon .text {
+    @apply text-[25px] text-[#ff6f6f] animate-pulse;
+  }
+
+  .socials-section ul {
+    @apply flex gap-10 p-4 justify-items-stretch items-center;
+  }
+
+  .socials-section ul li {
+    @apply ml-[5px];
+  }
+
+  .socials-section ul li p {
+    @apply w-[30px] h-[30px] text-sm lg:text-3xl;
+  }
+
+  .contact-form form .form-group {
+    @apply mb-15;
+  }
+
+  .contact-form form .form-group input,
+  textarea {
+    @apply p-[15px] border border-[#dfdfdf] dark:border-violet-50 rounded-[15px] text-[15px] w-full;
+  }
+
+  .form-group .form-control {
+    @apply text-black dark:text-white;
+  }
+
+  .contact-form form button {
+    @apply h-auto mt-2;
+  }
+
+  .learn-more-right {
+    @apply transition-all duration-300 ease-in-out relative right-0  inset-shadow-sm inset-shadow-zinc-900 dark:inset-shadow-rose-50 p-6 md:p-8  lg:p-10 rounded-[25px];
+  }
+
+  .learn-more-right:hover {
+    @apply bg-[#8c6fff] border-[#8c6fff];
+  }
+
+  /* Contact Component End*/
+
+  .row {
+    @apply flex flex-wrap -mx-4;
+  }
+
+  .row > * {
+    @apply px-4;
+  }
+
+  .sidebar-content-outer {
+    @apply flex pl-2 md:pl-4 lg:pl-6 py-50 md:py-40 lg:py-40;
+  }
+
+  .sidebar-content-inner {
+    @apply flex flex-col justify-between h-full space-y-30 top-1/5 left-4;
+  }
+
+  .sidebar-section-bullet {
+    @apply transition-all duration-300 cursor-pointer flex items-center text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  .sidebar-section-bullet a {
+    @apply ml-12 md:ml-14 lg:ml-16 hover:text-violet-500 transition-all duration-200;
+  }
+
+  .sidebar-close-button {
+    @apply lg:hidden absolute top-2 right-5 z-50;
+  }
+
+  .sidebar-darkmode {
+    @apply absolute bottom-2 left-2;
+  }
+
+  .darkmode-button {
+    @apply right-9  p-2 rounded-full border-4 border-indigo-600 cursor-pointer hover:scale-150 transition-all duration-300;
+  }
+}
+
+@layer components {
+  .sidebar {
+    @apply fixed top-0 left-0 h-full p-4 bg-slate-900 text-red-50 z-50 transition-all duration-300 ease-in-out;
+  }
+}
