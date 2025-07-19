@@ -11,7 +11,7 @@
 
   body {
     @apply bg-primary dark:bg-tertiary
-     text-sm font-['Poppins'] font-normal select-none overflow-x-hidden 
+     text-sm font-['Poppins'] font-normal overflow-x-hidden 
       bg-fixed bg-center 
       text-tertiary dark:text-primary transition-all duration-300;
   }
