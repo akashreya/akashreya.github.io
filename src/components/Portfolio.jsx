@@ -14,12 +14,19 @@ const Portfolio = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axiosInstance.get("/api/projects", {
-          withCredentials: false,
-        });
-        setProjects(response.data);
+        // Only try API call in development mode
+        if (import.meta.env.DEV) {
+          const response = await axiosInstance.get("/api/projects", {
+            withCredentials: false,
+          });
+          setProjects(response.data);
+        } else {
+          // Use static data in production
+          setProjects(projectDetails.projects);
+        }
       } catch (error) {
         console.error("Error fetching projects:", error);
+        // Fallback to static data
         setProjects(projectDetails.projects);
       } finally {
         setLoading(false);

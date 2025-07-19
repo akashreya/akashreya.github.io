@@ -5,6 +5,7 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/", // This will be "/" for username.github.io
   server: {
     host: true, // or '0.0.0.0'
     port: 5173,

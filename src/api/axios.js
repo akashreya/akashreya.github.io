@@ -1,14 +1,27 @@
 import axios from "axios";
-import { projectDetails } from "../profile";
+
+// Get API URL from environment variable
+const getApiUrl = () => {
+  // Vite automatically loads environment variables prefixed with VITE_
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  if (!apiUrl) {
+    console.warn("⚠️ VITE_API_URL not set, using fallback");
+    return "http://localhost:8080"; // fallback
+  }
+
+  return apiUrl;
+};
 
 const axiosInstance = axios.create({
-  baseURL: projectDetails.apiURL, // Replace with your API base URL
+  baseURL: getApiUrl(),
   timeout: 30000, // Optional: 30 seconds timeout
   headers: {
     "Content-Type": "application/json",
     // 'Authorization': `Bearer ${token}` // optional: for auth
   },
 });
+
 // Add request interceptor if needed
 axiosInstance.interceptors.request.use(
   (config) => {
