@@ -1,12 +1,7 @@
 import HighlightSection from "./HighlightSection";
 import { contact } from "../profile";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faInstagram,
-  faLinkedin,
-  faGithub,
-  faWebAwesome,
-} from "@fortawesome/free-brands-svg-icons";
+import SocialLinks from "./SocialLinks";
 
 const Contact = () => (
   <section id="contact" className="component">
@@ -57,48 +52,18 @@ const Contact = () => (
             <div className="contact-detail">
               <div className="contact-icon">
                 <div className="text">
-                  <FontAwesomeIcon icon={faWebAwesome} />
+                  <FontAwesomeIcon icon="globe" />
                 </div>
               </div>
               <div className="contact-info">
                 <h3 className="contact-title">Social</h3>
-                <div className="socials-section">
-                  <ul>
-                    <li>
-                      <p>
-                        <a
-                          href="https://github.com/akashreya"
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          <FontAwesomeIcon icon={faGithub} size="2x" />
-                        </a>
-                      </p>
-                    </li>
-                    <li>
-                      <p>
-                        <a
-                          href="https://www.instagram.com/akashreya"
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          <FontAwesomeIcon icon={faInstagram} size="2x" />
-                        </a>
-                      </p>
-                    </li>
-                    <li>
-                      <p>
-                        <a
-                          href="https://www.linkedin.com/in/akash-kantharaj-68526a3a/"
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          <FontAwesomeIcon icon={faLinkedin} size="2x" />
-                        </a>
-                      </p>
-                    </li>
-                  </ul>
-                </div>
+                <SocialLinks
+                  socialLinks={{
+                    github: contact.githubURL,
+                    linkedin: contact.linkedinURL,
+                    instagram: "https://www.instagram.com/akashreya",
+                  }}
+                />
               </div>
             </div>
           </div>

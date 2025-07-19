@@ -7,9 +7,6 @@ module.exports = {
         poppins: ["Poppins", "sans-serif"],
         quicksand: ["Quicksand", "sans-serif"],
       },
-      colors: {
-        secondary: "#18181b",
-      },
     },
   },
   plugins: [],

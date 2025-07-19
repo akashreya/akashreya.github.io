@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=UnifrakturCook:wght@700&family=Inter:wght@400;500&family=Crimson+Text:wght@400;600&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap");
 @import "tailwindcss";
@@ -9,14 +10,17 @@
   }
 
   body {
-    @apply bg-sky-100 dark:bg-slate-700 text-sm font-['Poppins'] font-normal select-none overflow-x-hidden bg-cover bg-fixed bg-center dark:text-white transition-all duration-300;
+    @apply bg-primary dark:bg-tertiary
+     text-sm font-['Poppins'] font-normal select-none overflow-x-hidden 
+      bg-fixed bg-center 
+      text-tertiary dark:text-primary transition-all duration-300;
   }
 
   .hamburger-button {
     @apply lg:hidden fixed top-5 left-2 z-50 bg-slate-800 text-white px-3 py-2 rounded;
   }
   .main-content {
-    @apply flex-1 p-4 lg:p-8 w-full transition-all ease-in-out duration-300 lg:ml-90;
+    @apply flex-1 flex-col lg:flex-row p-4 lg:p-8 w-full transition-all ease-in-out duration-300 md:ml-90;
   }
   .hero {
     @apply min-h-screen flex flex-col items-center justify-center px-4 py-12 relative;
@@ -27,7 +31,7 @@
   }
 
   .hero .hero-content .hero-item {
-    @apply py-16 pb-7 flex flex-col md:flex-col lg:flex-row relative;
+    @apply py-16 pb-7 flex flex-col lg:flex-row relative;
   }
 
   .hero .hero-content .hero-detail {
@@ -39,11 +43,14 @@
   }
 
   .hero .hero-content .hero-title {
-    @apply -mt-16 -mr-28 mb-8 text-5xl font-extrabold tracking-[0.02rem] z-5 leading-[72px] font-['Quicksand'] bg-gradient-to-b from-green-500 to-fuchsia-600 bg-clip-text text-transparent;
+    @apply -mt-16 -mr-15 md:-mr-45 mb-8 text-5xl font-extrabold 
+    tracking-[0.02rem] z-5 leading-[72px] font-['Quicksand'] 
+    bg-gradient-to-b from-pink-500 to-purple-600 dark:to-pink-300 bg-clip-text text-transparent
+    overflow-ellipsis;
   }
 
   .hero .hero-content .hero-title span {
-    @apply max-w-[400px] inline-grid;
+    @apply max-w-[400px] inline-grid transition-all duration-200;
   }
 
   .hero .hero-content .hero-name {
@@ -67,16 +74,11 @@
   }
 
   .hero .hero-content .hero-detail .hero-title .name {
-    @apply text-[#ff6f6f];
+    @apply text-red-600 dark:text-rose-50;
   }
 
   .hero .hero-content .hero-img {
     @apply max-w-[300px] mx-8 relative rounded-4xl 2xl:max-w-[350px];
-  }
-
-  .hero .hero-content .hero-img::before {
-    content: "";
-    @apply w-full h-full absolute top-4 left-4 border border-solid border-purple-500 rounded-lg opacity-30;
   }
 
   .hero .hero-content .hero-img .card {
@@ -95,6 +97,29 @@
     @apply grayscale-0;
   }
 
+  /* Hero Actions */
+  .hero-actions {
+    @apply flex flex-col items-end gap-6 mt-8 -mr-25 md:mr-0;
+  }
+
+  .cta-section {
+    @apply flex justify-start;
+  }
+
+  .cta-button {
+    @apply flex items-center gap-3 px-6 py-3 
+         bg-gradient-to-r from-purple-600 to-pink-600 
+         text-xl animate-bounce 
+         text-white font-semibold rounded-full
+         transition-all duration-300 ease-in-out
+         hover:scale-105 hover:shadow-lg
+         transform hover:-translate-y-1;
+  }
+
+  .cta-button:hover {
+    @apply from-purple-700 to-pink-700;
+  }
+
   /* Common */
 
   .component {
@@ -104,7 +129,8 @@
     @apply text-center;
   }
   .section-heading h2 {
-    @apply absolute inset-x-0 top-0 not-only-of-type:mb-10 py-12 text-4xl md:text-5xl lg:text-6xl leading-tight lg:leading-none font-bold font-['Quicksand'] bg-gradient-to-b from-green-500 to-fuchsia-900 bg-clip-text text-transparent;
+    @apply inset-x-0 top-0 py-12 text-4xl md:text-5xl lg:text-6xl leading-tight lg:leading-none font-bold font-['Quicksand'] 
+    bg-gradient-to-b from-pink-500 to-purple-600 dark:to-pink-300 bg-clip-text text-transparent;
   }
   .section-heading h2 span {
     @apply text-[#ff6f6f];
@@ -131,7 +157,7 @@
 
   /* Skills Section*/
   .skills-bar {
-    @apply grid grid-cols-6 md:grid-cols-6 lg:grid-cols-10
+    @apply grid grid-cols-6 md:grid-cols-6 
       justify-evenly gap-4 
       absolute inset-x-0 top-30
       m-4 p-8 md:p-16 lg:p-26;
@@ -139,9 +165,12 @@
 
   /* Skill Component */
   .skill {
-    @apply flex flex-col items-center justify-center 
-    m-2 p-2 hover:scale-110 transition-all 
-    text-center duration-300 ease-in-out;
+    @apply flex flex-row items-center justify-between 
+    m-2 p-3 hover:scale-110 transition-all 
+    text-center duration-300 ease-in-out 
+    bg-secondary dark:bg-tertiary/50 
+    
+    rounded-4xl;
   }
 
   .skill img {
@@ -156,19 +185,16 @@
 
   /* Portfolio Component */
   .projects-outer {
-    @apply relative inset-x-0 top-10  m-18 p-8 w-full;
+    @apply relative m-2 p-2 w-full;
   }
 
   .projects-react-tabs {
     @apply justify-center;
   }
 
-  .projects-list-outer {
-    @apply h-full p-10;
-  }
-
-  .projects-list-outer .projects-list-inner {
-    @apply px-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-15 justify-center;
+  .projects-list-inner {
+    @apply px-2 mx-4 grid grid-cols-1 md:grid-cols-2 
+    gap-8 items-center justify-center;
   }
 
   .no-projects {
@@ -176,40 +202,39 @@
   }
 
   .project-box {
-    @apply transition-all duration-300 ease-in-out
-         w-full h-[350px] m-8 p-8 dark:bg-gray-800
-         cursor-default 
-         rounded-[15px]
-         shadow-[0_0_15px_0_rgba(0,0,0,0.06)] 
-         border border-[#dfdfdf];
+    @apply transition-all duration-300 ease-in-out flex flex-col
+         w-full md:h-[220px] mx-4 p-4 
+         gap-4
+         cursor-default  justify-between
+         rounded-2xl relative overflow-hidden
+         shadow-sm shadow-tertiary dark:shadow-primary 
+         bg-gradient-to-b
+         from-secondary via-primary to-secondary
+         dark:from-black/10 dark:via-black dark:to-black/10;
   }
 
   .project-box h3 {
-    @apply mt-0 text-[20px] font-semibold;
+    @apply my-2 text-2xl md:text-3xl font-semibold;
   }
 
-  .project-box .links {
-    @apply mb-[10px] text-[#999] cursor-pointer;
+  .links {
+    @apply cursor-pointer;
   }
 
   .project-box a {
-    @apply text-[14px] text-[#999] font-light;
+    @apply text-xl font-light;
   }
 
   .project-box a:hover {
-    color: #ff6f6f;
+    @apply text-[#ff6f6f] dark:text-blue-600;
   }
 
   .project-box p {
-    @apply text-[14px];
+    @apply text-sm md:text-xl;
   }
 
-  .project-box p a {
-    @apply text-[#8c6fff];
-  }
-
-  .project-box .project-info {
-    @apply mt-[30px] flex;
+  .project-info {
+    @apply my-2 flex min-h-[70px] flex-row gap-2;
   }
 
   .project-box img {
@@ -217,7 +242,7 @@
   }
 
   .portfolio-tabs {
-    @apply w-full p-4 text-center;
+    @apply w-full p-2 text-center;
   }
 
   .portfolio-tabs ul {
@@ -232,7 +257,7 @@
   }
 
   .project-box .portfolio-img {
-    @apply transition-all duration-300 ease-in-out 
+    @apply transition-all duration-300 ease-in-out m-2
          w-[200px] overflow-hidden 
          rounded-[15px] relative 
          shadow-[0_0_15px_0_rgba(0,0,0,0.09)];
@@ -243,25 +268,24 @@
   }
 
   .project-modal {
-    @apply bg-white dark:bg-slate-800 p-6 rounded-[20px] max-w-[600px] w-full shadow-lg;
+    @apply bg-secondary dark:bg-tertiary p-6 rounded-4xl 
+    m-4
+    max-w-[500px] w-full shadow-lg;
   }
 
   .project-modal h3 {
-    @apply text-[16px] font-bold mb-4;
-  }
-
-  .project-modal p {
-    @apply mb-6;
+    @apply text-2xl md:text-3xl font-bold mb-4;
   }
 
   .project-modal button {
-    @apply cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-[15px] hover:bg-blue-900;
+    @apply cursor-pointer px-4 py-2 mt-4 dark:bg-primary bg-tertiary 
+    text-secondary dark:text-tertiary rounded-xl;
   }
 
-  .project-box .portfolio-img a {
+  .portfolio-img a {
     @apply h-full w-full 
          bg-cover bg-center bg-no-repeat bg-inherit 
-         block relative;
+         block relative shadow-sm;
   }
 
   .project-box .portfolio-img img {
@@ -282,7 +306,7 @@
   }
 
   .project-box .project-detail {
-    @apply pl-[30px];
+    @apply flex-1;
   }
 
   .project-box .project-detail ul {
@@ -297,77 +321,8 @@
 
   /* Contact Component Start*/
 
-  .contact-me-content {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 mt-25 gap-10 w-full;
-  }
-
-  .contact-socials {
-    @apply w-full mb-[25px] justify-center m-2 md:m-4 lg:m-6 p-4;
-  }
-
-  .contact-box {
-    @apply mb-[30px] p-[30px] flex rounded-[15px] 
-         shadow-[0_0_15px_0_rgba(0,0,0,0.06)] relative overflow-hidden 
-         border border-[#dfdfdf];
-  }
-
-  .contact-form {
-    @apply w-full mb-[25px] justify-center m-2 md:m-4 lg:m-6 p-4;
-  }
-
-  .contact-box::before {
-    @apply transition-all duration-300 ease-in-out bg-[rgba(0,0,0,0.06)];
-    content: "";
-    width: 150px;
-    height: 150px;
-    position: absolute;
-    top: -86%;
-    right: -2%;
-    border-radius: 15px;
-  }
-
-  .contact-box::after {
-    @apply transition-all duration-300 ease-in-out bg-[rgba(0,0,0,0.06)];
-    content: "";
-    width: 150px;
-    height: 150px;
-    position: absolute;
-    top: -15%;
-    right: -20%;
-    border-radius: 15px;
-  }
-  .contact-box:hover::before {
-    top: -70%;
-    right: -10%;
-  }
-
-  .contact-box:hover::after {
-    top: -38%;
-    right: -20%;
-  }
-
-  .contact-box .contact-detail {
-    @apply flex items-center;
-  }
-
-  .contact-box .contact-info h3 {
-    @apply text-xl lg:text-4xl text-[#ff6f6f];
-  }
-
-  .contact-box p {
-    @apply text-sm lg:text-3xl;
-  }
-
-  .contact-icon {
-    @apply w-[70px] min-w-[70px] h-[70px] mr-[15px] flex flex-col items-center justify-center rounded-full border border-[#dfdfdf] transform-3d transform-border;
-  }
-
-  .contact-box .contact-icon .text {
-    @apply text-[25px] text-[#ff6f6f] animate-pulse;
-  }
-
   .socials-section ul {
-    @apply flex gap-10 p-4 justify-items-stretch items-center;
+    @apply flex gap-10 p-1 justify-items-stretch items-center;
   }
 
   .socials-section ul li {
@@ -375,32 +330,7 @@
   }
 
   .socials-section ul li p {
-    @apply w-[30px] h-[30px] text-sm lg:text-3xl;
-  }
-
-  .contact-form form .form-group {
-    @apply mb-15;
-  }
-
-  .contact-form form .form-group input,
-  textarea {
-    @apply p-[15px] border border-[#dfdfdf] dark:border-violet-50 rounded-[15px] text-[15px] w-full;
-  }
-
-  .form-group .form-control {
-    @apply text-black dark:text-white;
-  }
-
-  .contact-form form button {
-    @apply h-auto mt-2;
-  }
-
-  .learn-more-right {
-    @apply transition-all duration-300 ease-in-out relative right-0  inset-shadow-sm inset-shadow-zinc-900 dark:inset-shadow-rose-50 p-6 md:p-8  lg:p-10 rounded-[25px];
-  }
-
-  .learn-more-right:hover {
-    @apply bg-[#8c6fff] border-[#8c6fff];
+    @apply w-[30px] h-[30px] text-sm lg:text-3xl hover:scale-120;
   }
 
   /* Contact Component End*/
@@ -446,4 +376,13 @@
   .sidebar {
     @apply fixed top-0 left-0 h-full p-4 bg-slate-900 text-red-50 z-50 transition-all duration-300 ease-in-out;
   }
+}
+
+@theme {
+  --color-primary: #d4aa7d; /* Example: blue */
+  --color-secondary: #efd09e; /* Example: orange */
+  --color-tertiary: #272727; /* Example: green */
+  --color-dark-primary: #1a1c22;
+  --color-dark-secondary: #5a5c6a;
+  --color-dark-tertiary: #a7a8b2;
 }

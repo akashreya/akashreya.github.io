@@ -37,7 +37,7 @@ const Portfolio = () => {
     selectedFilter === "all"
       ? projects
       : projects.filter(
-          (project) => project.type.toLowerCase() === selectedFilter
+          (project) => project.projectType.toLowerCase() === selectedFilter
         );
 
   // if (loading && projects.length == 0) {
@@ -72,40 +72,38 @@ const Portfolio = () => {
             </ul>
           </div>
         </div>
-        <div className="projects-list-outer">
-          <div key={selectedFilter} className="projects-list-inner">
-            <AnimatePresence mode="popLayout">
-              {filteredProjects.map((project) => (
-                <motion.div
-                  key={project.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{
-                    duration: 0.3,
-                    scale: { type: "spring", visualDuration: 0.5, bounce: 0.2 },
-                  }}
-                >
-                  <Project
-                    project={project}
-                    onFilterSelect={(type) => setSelectedFilter(type)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {filteredProjects.length === 0 && (
+        <div key={selectedFilter} className="projects-list-inner">
+          <AnimatePresence mode="popLayout">
+            {filteredProjects.map((project) => (
               <motion.div
-                key="no-results"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="no-projects"
+                key={project.id}
+                layout
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{
+                  duration: 0.5,
+                  scale: { type: "spring", visualDuration: 0.8, bounce: 0.1 },
+                }}
               >
-                No projects found.
+                <Project
+                  project={project}
+                  onFilterSelect={(type) => setSelectedFilter(type)}
+                />
               </motion.div>
-            )}
-          </div>
+            ))}
+          </AnimatePresence>
+          {filteredProjects.length === 0 && (
+            <motion.div
+              key="no-results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="no-projects"
+            >
+              No projects found.
+            </motion.div>
+          )}
         </div>
       </div>
     </section>

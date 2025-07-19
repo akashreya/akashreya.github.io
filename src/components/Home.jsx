@@ -1,9 +1,55 @@
 import heroImg from "../assets/hero_img.png";
-import { homePage } from "../profile";
+import { homePage, contact, about } from "../profile";
+import { AnimatedText } from "./animated-text";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import SocialLinks from "./SocialLinks";
+import { motion } from "framer-motion";
+import { DotPattern } from "./utility/DotPattern";
+import { cn } from "../utils/cn";
 
 const Home = () => {
   return (
-    <section id="home" className="hero">
+    <section id="home" className="hero relative overflow-hidden">
+      {/* Top-left corner - large dots with radial mask */}
+
+      <DotPattern
+        glow={true}
+        cr={2.5}
+        className={cn(
+          "[mask-image:radial-gradient(500px_circle_at_top_left,white,transparent_70%)]"
+        )}
+      />
+
+      {/* Top-right corner - medium dots with radial mask */}
+
+      <DotPattern
+        glow={true}
+        cr={3}
+        className={cn(
+          "[mask-image:radial-gradient(700px_circle_at_top_right,white,transparent_60%)]"
+        )}
+      />
+
+      {/* Bottom-left corner - medium-large dots with radial mask */}
+
+      <DotPattern
+        glow={true}
+        cr={3}
+        className={cn(
+          "[mask-image:radial-gradient(500px_circle_at_bottom_left,white,transparent_65%)]"
+        )}
+      />
+
+      {/* Bottom-right corner - small dots with radial mask */}
+
+      <DotPattern
+        glow={true}
+        cr={2.5}
+        className={cn(
+          "[mask-image:radial-gradient(300px_circle_at_bottom_right,white,transparent_75%)]"
+        )}
+      />
+
       <div className="hero-content">
         <div className="hero-item static">
           <div className="hero-detail">
@@ -11,17 +57,56 @@ const Home = () => {
               <span>
                 My Self,
                 <br />
-                <span className="name">{homePage.fullName}</span>
+                <span className="name">
+                  <AnimatedText text={homePage.fullName} />
+                </span>
               </span>
             </h1>
             <p className="hero-detail">{homePage.heroDetail}</p>
+            <div className="hero-actions">
+              {/* CTA mail to contact me */}
+              <div className="cta-section">
+                <a
+                  href={`mailto:${contact.emailID}`}
+                  className="cta-button"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <FontAwesomeIcon icon="envelope" />
+                  <span>Get In Touch</span>
+                </a>
+              </div>
+              <div className="inline-flex items-center text-sm md:text-xl ml-2">
+                <FontAwesomeIcon
+                  icon="map-marker"
+                  className="mr-2 text-rose-500"
+                />
+                {homePage.location}
+              </div>
+              {/* Social media links */}
+              <SocialLinks
+                socialLinks={{
+                  github: contact.githubURL,
+                  linkedin: contact.linkedinURL,
+                  instagram: "https://www.instagram.com/akashreya",
+                }}
+              />
+            </div>
           </div>
           <div className="hero-img">
-            <div className="card ">
-              <div className="card">
+            <motion.div
+              className="card shadow-lg bg-tertiary dark:bg-primary"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{
+                duration: 0.9,
+                ease: "easeIn",
+              }}
+            >
+              <div className="card relative overflow-hidden">
                 <img src={heroImg} alt="akash" />
               </div>
-            </div>
+            </motion.div>
           </div>
           <div className="hero-name">
             <h3>

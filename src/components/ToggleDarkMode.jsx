@@ -1,15 +1,16 @@
-import useDarkMode from "../hooks/useDarkMode";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function ToggleDarkMode() {
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   return (
     <div>
       <button
-        onClick={toggleDarkMode}
+        onClick={toggleTheme}
         className={`darkmode-button ${
           isDarkMode ? "bg-yellow-100" : "bg-slate-900"
-        }  `}
+        }`}
       >
         {isDarkMode ? "☀️" : "🌙"}
       </button>

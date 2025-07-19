@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { useState } from "react";
 import useScrollSpy from "../hooks/useScrollSpy";
 import ToggleDarkMode from "./ToggleDarkMode";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const sections = ["home", "about", "skills", "portfolio", "contact"];
+  const sections = ["home", "about", "portfolio", "skills"];
   const { activeSection, handleClick } = useScrollSpy(sections);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -25,8 +24,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   return (
     <aside
-      className={`sidebar hidden ${
-        isOpen ? "block w-55 lg:w-80" : "w-0"
+      className={`sidebar  ${
+        isOpen ? "block w-55 lg:w-80" : "hidden w-0"
       } lg:block lg:w-90 lg:p-8`}
     >
       <div className="sidebar-content-outer">
