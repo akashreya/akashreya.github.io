@@ -10,43 +10,12 @@ import { cn } from "../utils/cn";
 const Home = () => {
   return (
     <section id="home" className="hero relative overflow-hidden">
-      {/* Top-left corner - large dots with radial mask */}
-
+      {/* Combined dot pattern with all corner effects */}
       <DotPattern
         glow={true}
         cr={2.5}
         className={cn(
-          "[mask-image:radial-gradient(500px_circle_at_top_left,white,transparent_70%)]"
-        )}
-      />
-
-      {/* Top-right corner - medium dots with radial mask */}
-
-      <DotPattern
-        glow={true}
-        cr={3}
-        className={cn(
-          "[mask-image:radial-gradient(700px_circle_at_top_right,white,transparent_60%)]"
-        )}
-      />
-
-      {/* Bottom-left corner - medium-large dots with radial mask */}
-
-      <DotPattern
-        glow={true}
-        cr={3}
-        className={cn(
-          "[mask-image:radial-gradient(500px_circle_at_bottom_left,white,transparent_65%)]"
-        )}
-      />
-
-      {/* Bottom-right corner - small dots with radial mask */}
-
-      <DotPattern
-        glow={true}
-        cr={2.5}
-        className={cn(
-          "[mask-image:radial-gradient(300px_circle_at_bottom_right,white,transparent_75%)]"
+          "[mask-image:radial-gradient(500px_circle_at_top_left,white,transparent_70%),radial-gradient(600px_circle_at_top_right,white,transparent_60%),radial-gradient(400px_circle_at_bottom_left,white,transparent_65%),radial-gradient(300px_circle_at_bottom_right,white,transparent_75%)]"
         )}
       />
 
