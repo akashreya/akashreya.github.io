@@ -175,7 +175,7 @@ const Project = ({ project, onFilterSelect }) => {
                         rounded-lg shadow hover:bg-rose-700 dark:hover:bg-rose-700 
                         transition"
                     >
-                      Live Demo
+                      Website
                     </a>
                   )}
                   {project.githubUrl && (
@@ -189,7 +189,7 @@ const Project = ({ project, onFilterSelect }) => {
                         text-primary dark:text-tertiary 
                         rounded-lg shadow hover:bg-rose-700 dark:hover:bg-rose-700 transition"
                     >
-                      Github URL
+                      Code
                     </a>
                   )}
                 </div>

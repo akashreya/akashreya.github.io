@@ -12,10 +12,10 @@ const Home = () => {
     <section id="home" className="hero relative overflow-hidden">
       {/* Combined dot pattern with all corner effects */}
       <DotPattern
-        glow={true}
+        glow={false}
         cr={2.5}
         className={cn(
-          "[mask-image:radial-gradient(500px_circle_at_top_left,white,transparent_70%),radial-gradient(600px_circle_at_top_right,white,transparent_60%),radial-gradient(400px_circle_at_bottom_left,white,transparent_65%),radial-gradient(300px_circle_at_bottom_right,white,transparent_75%)]"
+          "[mask-image:radial-gradient(350px_circle_at_top_left,white,transparent_70%),radial-gradient(600px_circle_at_top_right,white,transparent_60%),radial-gradient(600px_circle_at_bottom_left,white,transparent_65%),radial-gradient(350px_circle_at_bottom_right,white,transparent_75%)]"
         )}
       />
 
