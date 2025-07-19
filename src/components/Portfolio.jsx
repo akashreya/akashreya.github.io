@@ -13,20 +13,25 @@ const Portfolio = () => {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      // Debug: Log environment info
+      console.log("Environment:", {
+        isDev: import.meta.env.DEV,
+        mode: import.meta.env.MODE,
+        base: import.meta.env.BASE_URL,
+        apiUrl: import.meta.env.VITE_API_URL,
+      });
+
       try {
-        // Only try API call in development mode
-        if (import.meta.env.DEV) {
-          const response = await axiosInstance.get("/api/projects", {
-            withCredentials: false,
-          });
-          setProjects(response.data);
-        } else {
-          // Use static data in production
-          setProjects(projectDetails.projects);
-        }
+        // Always try API call first (both dev and production)
+        console.log("Trying API call to:", import.meta.env.VITE_API_URL);
+        const response = await axiosInstance.get("/api/projects", {
+          withCredentials: false,
+        });
+        console.log("✅ API call successful, using live data");
+        setProjects(response.data);
       } catch (error) {
-        console.error("Error fetching projects:", error);
-        // Fallback to static data
+        console.error("❌ API call failed, using backup data:", error.message);
+        // Fallback to static data if API fails
         setProjects(projectDetails.projects);
       } finally {
         setLoading(false);
