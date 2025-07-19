@@ -27,7 +27,7 @@ jobs:
         run: npm run build
         env:
           # Set your production API URL here
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://your-production-api.com' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
