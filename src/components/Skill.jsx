@@ -6,10 +6,10 @@ const Skill = ({ skill }) => {
         <img src={imageURL} alt={name} className="w-8 h-8 object-contain" />
       </div>
       <div className="flex flex-col flex-1 items-start p-2 rounded-2xl bg-white/20 dark:bg-black/20">
-        <div className="text-tertiary dark:text-primary font-bold text-lg">
+        <div className="text-tertiary dark:text-primary font-bold text-sm md:text-2xl">
           {name}
         </div>
-        <div className="text-tertiary dark:text-primary text-xs">
+        <div className="text-tertiary dark:text-primary text-xs md:text-lg">
           {category}
         </div>
       </div>

@@ -25,9 +25,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   return (
     <aside
       className={`sidebar  ${
-        isOpen ? "block w-55 lg:w-80" : "hidden w-0"
-      } lg:block lg:w-90 lg:p-8`}
+        isOpen ? "block w-45 md:w-1/3 xl:w-80" : "hidden w-0"
+      }  md:w-3/10 xl:w-90 md:p-4 lg:p-8`}
     >
+      <div className="sidebar-darkmode">
+        <ToggleDarkMode />
+      </div>
       <div className="sidebar-content-outer">
         <div className="sidebar-content-inner">
           {sections.map((section) => (
@@ -39,14 +42,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               }}
               className={`sidebar-section-bullet ${
                 activeSection === section
-                  ? "w-10 h-5 rounded-full bg-indigo-600"
+                  ? "w-8 md:w-10 h-5 rounded-full bg-indigo-600"
                   : "w-4 h-4 rounded-full bg-gray-400"
               }`}
             >
               <a
                 className={`${
                   activeSection === section
-                    ? "text-rose-500 text-3xl md:text-4xl lg:text-5xl "
+                    ? "text-rose-500 text-2xl md:text-3xl lg:text-5xl "
                     : ""
                 }`}
               >
@@ -63,9 +66,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ✕
         </button>
       )}
-      <div className="sidebar-darkmode">
-        <ToggleDarkMode />
-      </div>
     </aside>
   );
 };

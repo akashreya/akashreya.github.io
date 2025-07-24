@@ -75,6 +75,7 @@ export function DotPattern({
   const id = useId();
   const containerRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -87,6 +88,19 @@ export function DotPattern({
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
+
+  useEffect(() => {
+    // Check if user prefers reduced motion
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   const dots = Array.from(
@@ -130,18 +144,20 @@ export function DotPattern({
           cy={dot.y}
           r={cr}
           fill={glow ? `url(#${id}-gradient)` : "currentColor"}
-          className="text-neutral-400/80"
+          className="text-tertiary dark:text-teal-500"
           initial={glow ? { opacity: 0.4, scale: 1 } : {}}
           animate={
-            glow
+            glow && !prefersReducedMotion
               ? {
                   opacity: [0.4, 1, 0.4],
                   scale: [1, 1.5, 1],
                 }
+              : glow
+              ? { opacity: 0.4, scale: 1 }
               : {}
           }
           transition={
-            glow
+            glow && !prefersReducedMotion
               ? {
                   duration: dot.duration,
                   repeat: Infinity,
@@ -149,7 +165,7 @@ export function DotPattern({
                   delay: dot.delay,
                   ease: "easeInOut",
                 }
-              : {}
+              : { duration: 0 }
           }
         />
       ))}

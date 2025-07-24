@@ -39,25 +39,25 @@ export const TimelineItem = ({
   const liOrder =
     layout === "2-columns"
       ? side === "left"
-        ? "md:flex-row"
-        : "md:flex-row-reverse"
+        ? "lg:flex-row"
+        : "lg:flex-row-reverse"
       : layout === "1-column-left"
-      ? "md:flex-row"
-      : "md:flex-row-reverse";
+      ? "lg:flex-row"
+      : "lg:flex-row-reverse";
   const align =
     layout === "2-columns"
       ? side === "left"
-        ? "md:items-end md:text-right"
-        : "md:items-start md:text-left"
+        ? "lg:items-end lg:text-right"
+        : "lg:items-start lg:text-left"
       : layout === "1-column-left"
-      ? "md:items-start md:text-left"
-      : "md:items-end md:text-right";
+      ? "lg:items-start lg:text-left"
+      : "lg:items-end lg:text-right";
 
   return (
     <li
       className={`relative flex flex-col ${liOrder} md:justify-between items-center group`}
     >
-      <div className="w-full md:w-1/2">
+      <div className="w-full lg:w-1/2">
         <div className={`p-6 ${className}`}>
           <div className="inline-flex items-center ml-2 text-sm md:text-xl mb-1">
             <FontAwesomeIcon

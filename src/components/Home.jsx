@@ -9,19 +9,20 @@ import { cn } from "../utils/cn";
 
 const Home = () => {
   return (
-    <section id="home" className="hero relative overflow-hidden">
+    <section id="home" className="hero">
       {/* Combined dot pattern with all corner effects */}
       <DotPattern
         glow={false}
         cr={2.5}
         className={cn(
-          "[mask-image:radial-gradient(350px_circle_at_top_left,white,transparent_70%),radial-gradient(600px_circle_at_top_right,white,transparent_60%),radial-gradient(600px_circle_at_bottom_left,white,transparent_65%),radial-gradient(350px_circle_at_bottom_right,white,transparent_75%)]"
+          "[mask-image:radial-gradient(200px_circle_at_top_left,white,transparent_90%),radial-gradient(300px_circle_at_top_right,white,transparent_90%),radial-gradient(300px_circle_at_bottom_left,white,transparent_60%),radial-gradient(300px_circle_at_bottom_right,white,transparent_100%)]", // mobile
+          "md:[mask-image:radial-gradient(400px_circle_at_top_left,white,transparent_100%),radial-gradient(600px_circle_at_top_right,white,transparent_80%),radial-gradient(600px_circle_at_bottom_left,white,transparent_80%),radial-gradient(400px_circle_at_bottom_right,white,transparent_90%)]" // md and up
         )}
       />
 
       <div className="hero-content">
-        <div className="hero-item static">
-          <div className="hero-detail">
+        <div className="hero-item">
+          <div className="hero-detail flex-1 min-w-0">
             <h1 className="hero-title">
               <span>
                 My Self,
@@ -62,14 +63,15 @@ const Home = () => {
               />
             </div>
           </div>
-          <div className="hero-img">
+          <div className="hero-img flex-1 min-w-0">
             <motion.div
               className="card shadow-lg bg-tertiary dark:bg-primary"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{
-                duration: 0.9,
+                duration: 1.6,
                 ease: "easeIn",
+                visualDuration: 1.6,
               }}
             >
               <div className="card relative overflow-hidden">
@@ -77,7 +79,7 @@ const Home = () => {
               </div>
             </motion.div>
           </div>
-          <div className="hero-name">
+          <div className="hero-name flex-1 min-w-0">
             <h3>
               I am a <br />
               <span>{homePage.heroTitle}</span>

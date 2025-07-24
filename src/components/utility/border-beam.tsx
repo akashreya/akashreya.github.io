@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "../../utils/cn";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion, MotionStyle, Transition } from "motion/react";
 
 interface BorderBeamProps {
@@ -56,14 +56,29 @@ export const BorderBeam = ({
   size = 50,
   delay = 0,
   duration = 6,
-  colorFrom = "#8c6fff",
-  colorTo = "#8c6fff",
+  colorFrom = "",
+  colorTo = "",
   transition,
   style,
   reverse = false,
   initialOffset = 0,
   borderWidth = 1,
 }: BorderBeamProps) => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    // Check if user prefers reduced motion
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
   return (
     <div
       className="pointer-events-none absolute inset-0 rounded-[inherit] border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)] border-(length:--border-beam-width)"
@@ -89,18 +104,26 @@ export const BorderBeam = ({
           } as MotionStyle
         }
         initial={{ offsetDistance: `${initialOffset}%` }}
-        animate={{
-          offsetDistance: reverse
-            ? [`${100 - initialOffset}%`, `${-initialOffset}%`]
-            : [`${initialOffset}%`, `${100 + initialOffset}%`],
-        }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration,
-          delay: -delay,
-          ...transition,
-        }}
+        animate={
+          prefersReducedMotion
+            ? { offsetDistance: `${initialOffset}%` }
+            : {
+                offsetDistance: reverse
+                  ? [`${100 - initialOffset}%`, `${-initialOffset}%`]
+                  : [`${initialOffset}%`, `${100 + initialOffset}%`],
+              }
+        }
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : {
+                repeat: Infinity,
+                ease: "linear",
+                duration,
+                delay: -delay,
+                ...transition,
+              }
+        }
       />
     </div>
   );

@@ -148,3 +148,6 @@ tasks/
 .cursor
 .taskmaster
 .taskmaster/
+screenshots/
+playwright-report/
+test-results/

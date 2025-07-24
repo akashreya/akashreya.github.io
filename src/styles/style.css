@@ -17,80 +17,77 @@
   }
 
   .hamburger-button {
-    @apply lg:hidden fixed top-5 left-2 z-50 bg-slate-800 text-white px-3 py-2 rounded;
+    @apply fixed top-5 left-4 z-50 bg-slate-800 dark:bg-white
+    xl:text-3xl
+     text-rose-50 dark:text-tertiary px-3 py-2 rounded cursor-pointer;
   }
   .main-content {
-    @apply flex-1 flex-col lg:flex-row p-4 lg:p-8 w-full transition-all ease-in-out duration-300 md:ml-90;
+    @apply flex-1 flex-col xl:flex-row p-2 w-full transition-all ease-in-out duration-300;
   }
   .hero {
-    @apply min-h-screen flex flex-col items-center justify-center px-4 py-12 relative;
+    @apply min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden;
   }
 
-  .hero .hero-content {
+  .hero-content {
     @apply flex relative my-24;
   }
 
-  .hero .hero-content .hero-item {
-    @apply py-16 pb-7 flex flex-col lg:flex-row relative;
+  .hero-item {
+    @apply py-16 pb-7 flex flex-col lg:flex-row static mx-auto;
   }
 
-  .hero .hero-content .hero-detail {
-    @apply max-w-[300px] pr-8 md:pr-0 text-right inset-0;
+  .hero-detail {
+    @apply max-w-[300px] p-2 text-left lg:text-right;
   }
 
   .hero .hero-content .hero-detail .hero-detail {
-    @apply mb-8 text-left md:text-right text-xl md:text-2xl lg:text-3xl leading-[30px];
+    @apply mb-8 text-left lg:text-right text-lg lg:text-3xl lg:leading-[30px];
   }
 
-  .hero .hero-content .hero-title {
-    @apply -mt-16 -mr-15 md:-mr-45 mb-8 text-5xl font-extrabold 
+  .hero-title {
+    @apply -mt-16 -mr-15 md:-mr-30 lg:-mr-50 mb-8 text-3xl md:text-5xl lg:text-6xl 
+    font-extrabold 
     tracking-[0.02rem] z-5 leading-[72px] font-['Quicksand'] 
-    bg-gradient-to-b from-pink-500 to-purple-600 dark:to-pink-300 bg-clip-text text-transparent
-    overflow-ellipsis;
+    bg-gradient-to-b from-pink-500 to-purple-600 dark:to-pink-300 bg-clip-text
+    text-transparent overflow-ellipsis
+    relative -top-7 md:-right-10   xl:text-[60px];
   }
 
-  .hero .hero-content .hero-title span {
+  .hero-title span {
     @apply max-w-[400px] inline-grid transition-all duration-200;
   }
 
-  .hero .hero-content .hero-name {
-    @apply min-w-[300px] flex items-end relative;
-  }
-
-  .hero .hero-content .hero-name h3 {
-    @apply mb-0 pb-4 text-[36px] font-light leading-[42px] relative lg:text-[42px] lg:leading-[50px];
-  }
-
-  .hero .hero-content .hero-name h3 span {
-    @apply max-w-[300px] inline-grid text-purple-500;
-  }
-
-  .hero .hero-content .hero-detail .hero-title {
-    @apply relative -top-7 -right-9 mb-8 text-[35px] font-extrabold tracking-[0.02rem] z-5 leading-[60px] lg:text-[55px];
-  }
-
-  .hero .hero-content .hero-detail .hero-title span {
-    @apply max-w-[400px] inline-grid;
-  }
-
-  .hero .hero-content .hero-detail .hero-title .name {
+  .hero-title .name {
     @apply text-red-600 dark:text-rose-50;
   }
 
-  .hero .hero-content .hero-img {
+  .hero-name {
+    @apply min-w-[300px] flex items-end relative;
+  }
+
+  .hero-name h3 {
+    @apply pb-4 text-[30px] font-light leading-[42px] relative md:text-[42px] md:leading-[50px];
+  }
+
+  .hero-name h3 span {
+    @apply max-w-[300px] inline-grid text-purple-500;
+  }
+
+  .hero-img {
     @apply max-w-[300px] mx-8 relative rounded-4xl 2xl:max-w-[350px];
   }
 
-  .hero .hero-content .hero-img .card {
-    @apply relative rounded-4xl overflow-hidden text-ellipsis shadow-lg inline-block transform [transform-style:preserve-3d] perspective-[1000px];
+  .card {
+    @apply relative rounded-4xl overflow-hidden text-ellipsis shadow-lg inline-block 
+    transform [transform-style:preserve-3d] perspective-[1000px];
   }
 
-  .hero .hero-content .hero-img .card img {
+  .card img {
     @apply w-full transition-all duration-300 grayscale ease-in-out;
   }
 
-  .hero .hero-content .hero-img .card:hover {
-    @apply shadow-lg z-5 transition-transform scale-105 duration-300 opacity-90;
+  .card:hover {
+    @apply shadow-lg z-5 transition-transform rotate-6 scale-105 duration-300 opacity-90;
   }
 
   .hero .hero-content .hero-img .card:hover img {
@@ -99,7 +96,7 @@
 
   /* Hero Actions */
   .hero-actions {
-    @apply flex flex-col items-end gap-6 mt-8 -mr-25 md:mr-0;
+    @apply flex flex-col items-end gap-6 mt-8 -mr-2 md:mr-0 mb-4 md:mb-8;
   }
 
   .cta-section {
@@ -109,10 +106,10 @@
   .cta-button {
     @apply flex items-center gap-3 px-6 py-3 
          bg-gradient-to-r from-purple-600 to-pink-600 
-         text-xl animate-bounce 
+         text-xl 
          text-white font-semibold rounded-full
          transition-all duration-300 ease-in-out
-         hover:scale-105 hover:shadow-lg
+         hover:scale-105 hover:shadow-lg hover:animate-none
          transform hover:-translate-y-1;
   }
 
@@ -129,7 +126,7 @@
     @apply text-center;
   }
   .section-heading h2 {
-    @apply inset-x-0 top-0 py-12 text-4xl md:text-5xl lg:text-6xl leading-tight lg:leading-none font-bold font-['Quicksand'] 
+    @apply inset-x-0 top-0 py-12 text-2xl md:text-5xl lg:text-6xl leading-tight lg:leading-none font-bold font-['Quicksand'] 
     bg-gradient-to-b from-pink-500 to-purple-600 dark:to-pink-300 bg-clip-text text-transparent;
   }
   .section-heading h2 span {
@@ -141,17 +138,19 @@
   /* About Section*/
 
   .about-details {
-    @apply relative w-full px-4 inset-0 mx-2;
+    @apply relative w-full px-4 xl:px-30 inset-0 mx-4 grid grid-cols-1 xl:grid-cols-2 gap-10;
   }
   .about-detail {
-    @apply px-10 mx-4;
+    @apply px-4;
   }
   .about-detail h4 {
-    @apply text-xl md:text-3xl lg:text-4xl leading-normal lg:leading-7 font-bold font-['Poppins'];
+    @apply text-xl md:text-3xl lg:text-4xl leading-normal lg:leading-7 
+    font-bold font-['Poppins'];
   }
 
   .about-detail .about-text {
-    @apply italic text-base md:text-2xl  lg:text-3xl leading-normal lg:leading-15 font-normal font-['Poppins'];
+    @apply italic text-xs md:text-xl lg:text-3xl leading-normal lg:leading-15 
+    font-normal font-['Poppins'];
   }
   /* About Section Ended*/
 
@@ -185,7 +184,7 @@
 
   /* Portfolio Component */
   .projects-outer {
-    @apply relative m-2 p-2 w-full;
+    @apply relative m-2 px-2 lg:px-20 xl:px-30 w-full;
   }
 
   .projects-react-tabs {
@@ -193,20 +192,19 @@
   }
 
   .projects-list-inner {
-    @apply px-2 mx-4 grid grid-cols-1 md:grid-cols-2 
-    gap-8 items-center justify-center;
+    @apply px-2 mx-4 grid grid-cols-1 xl:grid-cols-2 
+    gap-8;
   }
 
   .no-projects {
-    @apply text-gray-400 text-lg italic text-center py-16 col-span-2;
+    @apply text-lg italic text-center py-16 col-span-2;
   }
 
   .project-box {
     @apply transition-all duration-300 ease-in-out flex flex-col
-         w-full md:h-[300px] mx-4 p-4 
-         gap-4
-         cursor-default  justify-between
-         rounded-2xl relative overflow-hidden
+         w-full h-full min-h-[300px] mx-auto p-2 
+         justify-between
+         cursor-default rounded-2xl relative overflow-hidden
          shadow-sm shadow-tertiary dark:shadow-primary 
          bg-gradient-to-b
          from-secondary via-primary to-secondary
@@ -214,7 +212,7 @@
   }
 
   .project-box h3 {
-    @apply my-2 text-2xl md:text-3xl font-semibold;
+    @apply text-lg md:text-3xl font-semibold;
   }
 
   .links {
@@ -222,7 +220,7 @@
   }
 
   .project-box a {
-    @apply text-xl font-light;
+    @apply text-sm md:text-lg my-2 font-light;
   }
 
   .project-box a:hover {
@@ -230,11 +228,11 @@
   }
 
   .project-box p {
-    @apply text-sm md:text-xl;
+    @apply text-xs md:text-xl;
   }
 
   .project-info {
-    @apply my-2 flex min-h-[70px] flex-row gap-2;
+    @apply flex min-h-[70px] flex-row justify-evenly;
   }
 
   .project-box img {
@@ -251,30 +249,54 @@
 
   .portfolio-tabs ul li {
     @apply inline-block cursor-pointer font-['Poppins'] hover:text-violet-500
-         m-2 p-4 md:m-4 md:p-6 lg:m-4
-         text-sm md:text-2xl lg:text-3xl
+         mx-auto p-2 md:m-4 md:p-6
+         text-xs md:text-xl lg:text-3xl
          transition-all duration-400 uppercase ease-in-out;
   }
 
-  .project-box .portfolio-img {
+  .portfolio-img {
     @apply transition-all duration-300 ease-in-out m-2
-         w-[200px] overflow-hidden 
-         rounded-[15px] relative 
-         shadow-[0_0_15px_0_rgba(0,0,0,0.09)];
+          overflow-hidden items-center relative;
   }
 
+  .portfolio-img a {
+    @apply w-18 md:w-24 lg:w-30 xl:w-50 xl:h-30 bg-cover bg-center bg-no-repeat bg-inherit 
+         block relative;
+  }
+
+  .portfolio-img img {
+    @apply h-fit w-fit transition-all duration-300 ease-in-out rounded-3xl object-contain;
+  }
   .project-modal-bg {
-    @apply fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50;
+    @apply fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 h-screen w-screen;
   }
 
   .project-modal {
-    @apply bg-secondary dark:bg-tertiary p-6 rounded-4xl 
-    m-4
-    max-w-[500px] w-full shadow-lg;
+    @apply bg-secondary dark:bg-tertiary rounded-4xl 
+    p-6 m-4
+    text-xs md:text-sm lg:text-xl xl:text-2xl
+    max-w-[95vw] sm:max-w-[80vw] lg:max-w-[500px] max-h-[85vh] w-full shadow-lg overflow-y-auto;
+    scrollbar-color: var(--color-tertiary);
+  }
+
+  .project-modal::-webkit-scrollbar {
+    width: 8px;
+    border-radius: 8px;
+    background: #f3e0c0; /* track color */
+  }
+
+  .project-modal::-webkit-scrollbar-thumb {
+    background: #b48e5a; /* thumb color */
+    border-radius: 8px;
+    border: 2px solid #f3e0c0; /* creates a gap effect */
+  }
+
+  .project-modal::-webkit-scrollbar-thumb:hover {
+    background: #a0763c;
   }
 
   .project-modal h3 {
-    @apply text-2xl md:text-3xl font-bold mb-4;
+    @apply text-lg md:text-2xl xl:text-3xl font-bold  mb-1 xl:mb-4;
   }
 
   .project-modal button {
@@ -282,14 +304,26 @@
     text-secondary dark:text-tertiary rounded-xl;
   }
 
-  .portfolio-img a {
-    @apply h-full w-full 
-         bg-cover bg-center bg-no-repeat bg-inherit 
-         block relative shadow-sm;
+  .modal-details p {
+    @apply text-xs md:text-sm lg:text-lg xl:text-xl xl:mb-8 leading-relaxed;
   }
 
-  .project-box .portfolio-img img {
-    @apply transition-all duration-300 ease-in-out;
+  .modal-subdetails {
+    @apply space-y-2 lg:space-y-4 xl:space-y-8;
+  }
+  .modal-subdetails h3 {
+    @apply text-sm xl:text-2xl font-semibold xl:mb-4 flex items-center;
+  }
+
+  .modal-subdetails ul {
+    @apply space-y-1 xl:space-y-3;
+  }
+  .modal-subdetails li {
+    @apply flex items-start;
+  }
+
+  .modal-subdetails span {
+    @apply text-[10px] xl:text-[11px];
   }
 
   .project-box .portfolio-img .overlay {
@@ -310,11 +344,11 @@
   }
 
   .project-box .project-detail ul {
-    @apply m-0 p-0;
+    @apply mx-2 px-2;
   }
 
   .project-box .project-detail ul li {
-    @apply py-[5px] font-['Poppins'] text-2xl;
+    @apply py-[5px] font-['Poppins'] md:text-2xl;
   }
 
   /* Portfolio Component End*/
@@ -330,7 +364,7 @@
   }
 
   .socials-section ul li p {
-    @apply w-[30px] h-[30px] text-sm lg:text-3xl hover:scale-120;
+    @apply w-[30px] h-[30px] text-sm md:text-3xl hover:scale-120;
   }
 
   /* Contact Component End*/
@@ -344,15 +378,16 @@
   }
 
   .sidebar-content-outer {
-    @apply flex pl-2 md:pl-4 lg:pl-6 py-50 md:py-40 lg:py-40;
+    @apply pl-2 md:pl-4 lg:pl-6 py-50 md:py-10 lg:py-40;
   }
 
   .sidebar-content-inner {
-    @apply flex flex-col justify-between h-full space-y-30 top-1/5 left-4;
+    @apply mb-6 space-y-10 md:space-y-12 lg:space-y-30 xl:space-y-50 top-1/5  left-2;
   }
 
   .sidebar-section-bullet {
-    @apply transition-all duration-300 cursor-pointer flex items-center text-2xl md:text-3xl lg:text-4xl;
+    @apply transition-all duration-300 cursor-pointer flex items-center text-lg 
+    md:text-2xl lg:text-4xl xl:text-5xl;
   }
 
   .sidebar-section-bullet a {
@@ -360,11 +395,11 @@
   }
 
   .sidebar-close-button {
-    @apply lg:hidden absolute top-2 right-5 z-50;
+    @apply absolute top-2 right-4 z-50 cursor-pointer xl:text-3xl bg-secondary/50 text-tertiary p-4 rounded-2xl;
   }
 
   .sidebar-darkmode {
-    @apply absolute bottom-2 left-2;
+    @apply relative top-0;
   }
 
   .darkmode-button {

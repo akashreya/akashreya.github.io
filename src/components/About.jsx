@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 const About = () => (
   <section id="about" className="component">
     <HighlightSection text={about.title} highlights={about.titleHighlight} />
-    <div className="about-details grid grid-cols-1 md:grid-cols-2">
+    <div className="about-details">
       <div className="experience-timeline">
         <Timeline layout="2-columns">
           {experience.map((exp, idx) => (
