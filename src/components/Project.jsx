@@ -72,10 +72,17 @@ const Project = ({ project, onFilterSelect }) => {
             {project.shortDescription}
             {project.description && project.description.length > 0 && (
               <a
-                className="links cursor-pointer rounded-full my-1 bg-tertiary dark:bg-primary 
-                px-1 border text-primary dark:text-tertiary border-tertiary 
+                className="links cursor-pointer rounded-full my-1 
+                bg-gradient-to-r from-amber-700 to-orange-800 
+                dark:from-purple-600 dark:to-pink-600 
+                hover:from-amber-800 hover:to-orange-900
+                dark:hover:from-purple-700 dark:hover:to-pink-700
+                px-3 py-1.5 text-white font-medium
                 text-xs md:text-sm 2xl:text-xl
-                ml-2 align-middle"
+                ml-2 align-middle shadow-md hover:shadow-lg
+                transition-all duration-300 hover:scale-105
+                inline-flex items-center justify-center
+                min-w-[30px] min-h-[30px]"
                 onClick={() => setShowModal(true)}
               >
                 Read more
@@ -117,7 +124,7 @@ const Project = ({ project, onFilterSelect }) => {
         </AnimatePresence>
         <div className="project-info">
           {project.images && project.images.length > 0 && (
-            <div className="portfolio-img">
+            <div className="portfolio-img relative">
               {/* Show the thumbnail or primary image */}
               {(() => {
                 // Find the thumbnail or primary image
@@ -129,15 +136,18 @@ const Project = ({ project, onFilterSelect }) => {
                   <a
                     data-fancybox={`gallery-${project.id}`}
                     href={thumb.imageKey}
+                    className="relative block"
                   >
-                    <span
-                      className="overlay absolute inset-0  rounded-3xl flex items-center justify-center 
-                    text-xs xl:text-4xl text-white bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity 
-                    duration-300 pointer-events-none"
-                    >
-                      +
-                    </span>
-                    <img src={thumb.imageKey} alt={project.title} />
+                    <div className="relative inline-block">
+                      <img src={thumb.imageKey} alt={project.title} />
+                      <span
+                        className="overlay absolute inset-0 rounded-3xl flex items-center justify-center 
+                      text-xs xl:text-4xl text-white bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity 
+                      duration-300 pointer-events-none"
+                      >
+                        +
+                      </span>
+                    </div>
                   </a>
                 );
               })()}
@@ -172,12 +182,16 @@ const Project = ({ project, onFilterSelect }) => {
                       href={project.liveDemoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block px-2 py-1
+                      className="inline-flex items-center justify-center px-3 py-2
                     text-xs md:text-sm 2xl:text-xl
-                       bg-tertiary dark:bg-primary
-                        text-primary dark:text-tertiary 
-                        rounded-lg shadow hover:bg-rose-700 dark:hover:bg-rose-700 
-                        transition"
+                       bg-gradient-to-r from-amber-700 to-orange-800
+                       dark:from-purple-600 dark:to-pink-600
+                       hover:from-amber-800 hover:to-orange-900
+                       dark:hover:from-purple-700 dark:hover:to-pink-700
+                        text-white font-medium
+                        rounded-lg shadow-md hover:shadow-lg 
+                        transition-all duration-300 hover:scale-105
+                        min-w-[30px] min-h-[30px]"
                     >
                       Website
                     </a>
@@ -187,11 +201,16 @@ const Project = ({ project, onFilterSelect }) => {
                       href={project.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block px-2 py-1
+                      className="inline-flex items-center justify-center px-3 py-2
                       text-xs md:text-sm 2xl:text-xl
-                       bg-tertiary dark:bg-primary
-                        text-primary dark:text-tertiary 
-                        rounded-lg shadow hover:bg-rose-700 dark:hover:bg-rose-700 transition"
+                       bg-gradient-to-r from-stone-700 to-amber-800
+                       dark:from-indigo-600 dark:to-purple-600
+                       hover:from-stone-800 hover:to-amber-900
+                       dark:hover:from-indigo-700 dark:hover:to-purple-700
+                        text-white font-medium
+                        rounded-lg shadow-md hover:shadow-lg 
+                        transition-all duration-300 hover:scale-105
+                        min-w-[30px] min-h-[30px]"
                     >
                       Code
                     </a>

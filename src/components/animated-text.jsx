@@ -18,18 +18,19 @@ export const AnimatedText = ({ text }) => {
       y: 0,
       transition: {
         type: "spring",
-        damping: 10,
-        stiffness: 100,
+        damping: 12,
+        stiffness: 120,
+        duration: 0.6,
       },
     },
     hidden: {
       opacity: 0,
-      x: -80,
+      x: 0, // Reduced from -80 to prevent layout shift
       y: 0,
       transition: {
         type: "spring",
-        damping: 10,
-        stiffness: 100,
+        damping: 12,
+        stiffness: 120,
       },
     },
   };
@@ -40,6 +41,7 @@ export const AnimatedText = ({ text }) => {
       variants={container}
       initial="hidden"
       animate="visible"
+      style={{ minWidth: "fit-content" }} // Reserve space to prevent layout shift
     >
       {letters.map((letter, index) => (
         <motion.span key={index} variants={child} className="inline-block">

@@ -6,6 +6,8 @@ import About from "./components/About";
 import Skills from "./components/Skills";
 import Portfolio from "./components/Portfolio";
 import Contact from "./components/Contact";
+import ToggleDarkMode from "./components/ToggleDarkMode";
+import SectionDivider from "./components/SectionDivider";
 import { library } from "@fortawesome/fontawesome-svg-core";
 
 import {
@@ -37,11 +39,20 @@ const App = () => {
             ☰
           </button>
         )}
+        
+        {/* Dark mode toggle in top right */}
+        <div className="fixed top-4 right-4 z-50">
+          <ToggleDarkMode />
+        </div>
+        
         <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
         <div className="main-content">
           <Home />
+          <SectionDivider />
           <About />
+          <SectionDivider />
           <Portfolio />
+          <SectionDivider />
           <Skills />
         </div>
       </div>

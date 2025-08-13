@@ -23,12 +23,24 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    
+    // Add transition class before theme change
+    document.documentElement.classList.add("theme-transitioning");
+    
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+    
     localStorage.setItem("theme", theme);
+    
+    // Remove transition class after transition completes
+    const timeout = setTimeout(() => {
+      document.documentElement.classList.remove("theme-transitioning");
+    }, 500);
+    
+    return () => clearTimeout(timeout);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

@@ -4,6 +4,8 @@ import axiosInstance from "../api/axios";
 import { projectDetails } from "../profile";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import AnimatedSection from "./utility/AnimatedSection";
+import { ProjectSkeletonGrid } from "./utility/ProjectSkeleton";
 
 const Portfolio = () => {
   const [projects, setProjects] = useState([]);
@@ -58,12 +60,15 @@ const Portfolio = () => {
 
   return (
     <section id="portfolio" className="component">
-      <HighlightSection
-        text={projectDetails.title}
-        highlights={projectDetails.titleHighlight}
-      />
-      <div className="projects-outer">
-        <div className="projects-react-tabs">
+      <AnimatedSection variant="fadeUp" delay={0.2}>
+        <HighlightSection
+          text={projectDetails.title}
+          highlights={projectDetails.titleHighlight}
+        />
+      </AnimatedSection>
+      
+      <AnimatedSection variant="fadeUp" delay={0.4} className="projects-outer">
+        <AnimatedSection variant="fadeIn" delay={0.6} className="projects-react-tabs">
           <div className="portfolio-tabs">
             <ul>
               {filters.map((type) => (
@@ -73,7 +78,7 @@ const Portfolio = () => {
                   onClick={filterProjects}
                   className={`${
                     selectedFilter === type
-                      ? "scale-120 font-extraboldbold text-rose-500"
+                      ? "scale-120 font-black bg-gradient-to-r from-amber-700 to-orange-800 dark:from-purple-600 dark:to-pink-600 bg-clip-text text-transparent shadow-lg shadow-amber-700/30 dark:shadow-purple-500/30 px-4 py-2 rounded-xl"
                       : "font-normal "
                   }`}
                 >
@@ -83,41 +88,48 @@ const Portfolio = () => {
               ))}
             </ul>
           </div>
-        </div>
-        <div key={selectedFilter} className="projects-list-inner">
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project) => (
+        </AnimatedSection>
+        
+        {loading ? (
+          <AnimatedSection variant="fadeUp" delay={0.8}>
+            <ProjectSkeletonGrid count={4} />
+          </AnimatedSection>
+        ) : (
+          <div key={selectedFilter} className="projects-list-inner">
+            <AnimatePresence mode="popLayout">
+              {filteredProjects.map((project) => (
+                <motion.div
+                  key={project.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{
+                    duration: 0.5,
+                    scale: { type: "spring", visualDuration: 0.8, bounce: 0.1 },
+                  }}
+                >
+                  <Project
+                    project={project}
+                    onFilterSelect={(type) => setSelectedFilter(type)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {filteredProjects.length === 0 && !loading && (
               <motion.div
-                key={project.id}
-                layout
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{
-                  duration: 0.5,
-                  scale: { type: "spring", visualDuration: 0.8, bounce: 0.1 },
-                }}
+                key="no-results"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="no-projects"
               >
-                <Project
-                  project={project}
-                  onFilterSelect={(type) => setSelectedFilter(type)}
-                />
+                No projects found.
               </motion.div>
-            ))}
-          </AnimatePresence>
-          {filteredProjects.length === 0 && (
-            <motion.div
-              key="no-results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="no-projects"
-            >
-              No projects found.
-            </motion.div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
+        )}
+      </AnimatedSection>
     </section>
   );
 };

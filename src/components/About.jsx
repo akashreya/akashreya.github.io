@@ -3,12 +3,16 @@ import { Timeline } from "./utility/Timeline";
 import { TimelineItem } from "./utility/TimelineItem";
 import HighlightSection from "./HighlightSection";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import AnimatedSection from "./utility/AnimatedSection";
 
 const About = () => (
   <section id="about" className="component">
-    <HighlightSection text={about.title} highlights={about.titleHighlight} />
-    <div className="about-details">
-      <div className="experience-timeline">
+    <AnimatedSection variant="fadeUp" delay={0.2}>
+      <HighlightSection text={about.title} highlights={about.titleHighlight} />
+    </AnimatedSection>
+    
+    <AnimatedSection variant="fadeUp" delay={0.4} className="about-details">
+      <AnimatedSection variant="slideLeft" delay={0.6} className="experience-timeline">
         <Timeline layout="2-columns">
           {experience.map((exp, idx) => (
             <TimelineItem
@@ -49,15 +53,16 @@ const About = () => (
             </TimelineItem>
           ))}
         </Timeline>
-      </div>
-      <div className="about-detail">
+      </AnimatedSection>
+      
+      <AnimatedSection variant="slideRight" delay={0.8} className="about-detail">
         <p className="about-text indent-20 mt-5">{about.textOne}</p>
         <br />
         <p className="about-text">{about.textTwo}</p>
         <br />
         <p className="about-text">{about.textThree}</p>
-      </div>
-    </div>
+      </AnimatedSection>
+    </AnimatedSection>
   </section>
 );
 
