@@ -82,7 +82,7 @@ const Project = ({ project, onFilterSelect }) => {
                 ml-2 align-middle shadow-md hover:shadow-lg
                 transition-all duration-300 hover:scale-105
                 inline-flex items-center justify-center
-                min-w-[30px] min-h-[30px]"
+                min-w-[25px] min-h-[25px]"
                 onClick={() => setShowModal(true)}
               >
                 Read more
@@ -191,7 +191,7 @@ const Project = ({ project, onFilterSelect }) => {
                         text-white font-medium
                         rounded-lg shadow-md hover:shadow-lg 
                         transition-all duration-300 hover:scale-105
-                        min-w-[30px] min-h-[30px]"
+                        min-w-[25px] min-h-[25px]"
                     >
                       Website
                     </a>
@@ -210,7 +210,7 @@ const Project = ({ project, onFilterSelect }) => {
                         text-white font-medium
                         rounded-lg shadow-md hover:shadow-lg 
                         transition-all duration-300 hover:scale-105
-                        min-w-[30px] min-h-[30px]"
+                        min-w-[25px] min-h-[25px]"
                     >
                       Code
                     </a>
