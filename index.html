@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
+    />
+    <link rel="icon" type="image/png" href="/akash.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akash - Personal portfolio</title>
+    <script>
+      // Prevent FOUC (Flash of Unstyled Content) for dark mode
+      (function() {
+        const getInitialTheme = () => {
+          if (typeof window !== "undefined") {
+            const stored = localStorage.getItem("theme");
+            if (stored) return stored;
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+              return "dark";
+          }
+          return "light";
+        };
+        
+        const theme = getInitialTheme();
+        document.documentElement.setAttribute("data-theme", theme);
+        
+        // Apply background color immediately before any CSS loads
+        if (theme === "dark") {
+          document.documentElement.classList.add("dark");
+          document.documentElement.style.backgroundColor = "#272727"; // --color-tertiary
+        } else {
+          document.documentElement.style.backgroundColor = "#d4aa7d"; // --color-primary
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-Bx68OCSY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bwinqvu1.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
