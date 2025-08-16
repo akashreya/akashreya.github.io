@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Fancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import heroImg from "../assets/hero_img.png";
@@ -91,8 +92,8 @@ const Project = ({ project, onFilterSelect }) => {
           </p>
         </div>
 
-        <AnimatePresence>
-          {showModal && (
+        {showModal && createPortal(
+          <AnimatePresence>
             <motion.div
               className="project-modal-bg"
               style={{
@@ -120,8 +121,9 @@ const Project = ({ project, onFilterSelect }) => {
                 <button onClick={() => setShowModal(false)}>Close</button>
               </motion.div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>,
+          document.body
+        )}
         <div className="project-info">
           {project.images && project.images.length > 0 && (
             <div className="portfolio-img relative">
