@@ -151,3 +151,10 @@ tasks/
 screenshots/
 playwright-report/
 test-results/
+
+# Local dev artifacts
+test-*.png
+.claude/
+.playwright-mcp/
+Design/
+tests/

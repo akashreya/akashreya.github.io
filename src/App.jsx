@@ -1,63 +1,14 @@
-import React, { useState } from "react";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import Sidebar from "./components/Sidebar";
-import Home from "./components/Home";
-import About from "./components/About";
-import Skills from "./components/Skills";
-import Portfolio from "./components/Portfolio";
-import Contact from "./components/Contact";
-import ToggleDarkMode from "./components/ToggleDarkMode";
-import SectionDivider from "./components/SectionDivider";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { Routes, Route } from 'react-router-dom';
+import PortfolioPage from './pages/PortfolioPage';
+import CaseStudyPage from './pages/CaseStudyPage';
+import InTheWildPage from './pages/InTheWildPage';
 
-import {
-  faEnvelope,
-  faBriefcase,
-  faCalendar,
-  faGlobe,
-  faMobile,
-  faMapMarker,
-} from "@fortawesome/free-solid-svg-icons";
-
-library.add(
-  faEnvelope,
-  faBriefcase,
-  faGlobe,
-  faMobile,
-  faMapMarker,
-  faCalendar
-);
-
-const App = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
+export default function App() {
   return (
-    <ThemeProvider>
-      <div className="flex">
-        {!isOpen && (
-          <button className="hamburger-button" onClick={() => setIsOpen(true)}>
-            ☰
-          </button>
-        )}
-        
-        {/* Dark mode toggle in top right */}
-        <div className="fixed top-4 right-4 z-50">
-          <ToggleDarkMode />
-        </div>
-        
-        <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-        <div className="main-content">
-          <Home />
-          <SectionDivider />
-          <About />
-          <SectionDivider />
-          <Portfolio />
-          <SectionDivider />
-          <Skills />
-        </div>
-      </div>
-    </ThemeProvider>
+    <Routes>
+      <Route path="/" element={<PortfolioPage />} />
+      <Route path="/work/:slug" element={<CaseStudyPage />} />
+      <Route path="/in-the-wild" element={<InTheWildPage />} />
+    </Routes>
   );
-};
-
-export default App;
+}
