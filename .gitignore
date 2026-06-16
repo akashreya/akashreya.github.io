@@ -156,5 +156,4 @@ test-results/
 test-*.png
 .claude/
 .playwright-mcp/
-Design/
 tests/

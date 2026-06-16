@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../theme/ThemeProvider';
+import { PERSONAL_MODE_ENABLED } from '../config';
 
 function scrollToId(id) {
   const el = document.getElementById(id);
@@ -37,6 +39,7 @@ function useScrollSpy(ids, offset = 140) {
 export default function NavPill({ items }) {
   const targets = items.map(item => item.target);
   const activeTarget = useScrollSpy(targets);
+  const { mode, triggerModeTransition } = useTheme();
 
   return (
     <nav className="navpill">
@@ -50,8 +53,19 @@ export default function NavPill({ items }) {
           <span className="label">{item.name}</span>
         </button>
       ))}
-      <span className="navpill__sep" />
-      <button className="navpill__cmd">⌘K</button>
+      {PERSONAL_MODE_ENABLED && (
+        <>
+          <span className="navpill__sep" />
+          <button
+            className="navpill__mode"
+            onClick={() => triggerModeTransition(mode === 'recruiter' ? 'personal' : 'recruiter')}
+            aria-label="Toggle mode"
+          >
+            <span className="navpill__mode-dot" />
+            {mode === 'recruiter' ? 'Personal →' : 'Recruiter mode'}
+          </button>
+        </>
+      )}
     </nav>
   );
 }

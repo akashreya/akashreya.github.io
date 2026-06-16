@@ -1,4 +1,20 @@
-export default function Enterprise({ enterprise }) {
+import { useTheme } from '../theme/ThemeProvider';
+
+export default function Enterprise({ enterprise, contact }) {
+  const { mode } = useTheme();
+
+  if (mode === 'personal') {
+    const email = contact?.email ?? 'hello@akashreya.space';
+    return (
+      <section className="page">
+        <div className="enterprise-collapsed reveal">
+          <span>13y · enterprise, decisioning, telecom · the long story</span>
+          <a href={`mailto:${email}`}>resume.pdf →</a>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="enterprise" className="page">
       <div className="section-head reveal">

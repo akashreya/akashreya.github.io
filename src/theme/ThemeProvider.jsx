@@ -1,47 +1,77 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { themes, applyTheme } from './themes';
+import { PERSONAL_MODE_ENABLED } from '../config';
 
 const ThemeCtx = createContext(null);
 
 export function ThemeProvider({ children }) {
   const url = new URL(window.location.href);
-  const savedTheme = localStorage.getItem('akashreya.theme');
-  const savedMode  = localStorage.getItem('akashreya.mode');
+  const savedMode = localStorage.getItem('akashreya.mode');
+  const savedTone = localStorage.getItem('akashreya.tone');
 
-  const startTheme = url.searchParams.get('theme') || savedTheme || 'crimson';
-  const startMode  = url.searchParams.get('mode')  || savedMode  || 'dark';
+  const startMode = PERSONAL_MODE_ENABLED
+    ? (url.searchParams.get('mode') || savedMode || 'recruiter')
+    : 'recruiter';
+  const startTone = url.searchParams.get('tone') || savedTone || 'dark';
 
-  const [themeName, setThemeNameRaw] = useState(themes[startTheme] ? startTheme : 'crimson');
-  const [mode, setModeRaw]           = useState(['light', 'dark'].includes(startMode) ? startMode : 'dark');
+  const [mode, setModeRaw] = useState(themes[startMode] ? startMode : 'recruiter');
+  const [tone, setToneRaw] = useState(['light', 'dark'].includes(startTone) ? startTone : 'dark');
+  const [transOverlay, setTransOverlay] = useState(null);
 
-  const setThemeName = (name) => {
-    setThemeNameRaw(name);
-    localStorage.setItem('akashreya.theme', name);
-  };
+  const modeRef = useRef(mode);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+
   const setMode = (m) => {
-    setModeRaw(m);
-    localStorage.setItem('akashreya.mode', m);
+    const next = typeof m === 'function' ? m(mode) : m;
+    setModeRaw(next);
+    localStorage.setItem('akashreya.mode', next);
   };
+  const setTone = (t) => {
+    const next = typeof t === 'function' ? t(tone) : t;
+    setToneRaw(next);
+    localStorage.setItem('akashreya.tone', next);
+  };
+
+  const triggerModeTransition = useCallback((nextMode) => {
+    if (!PERSONAL_MODE_ENABLED) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setModeRaw(nextMode);
+      localStorage.setItem('akashreya.mode', nextMode);
+      return;
+    }
+    if (transOverlay) return;
+    const direction = nextMode === 'personal' ? 'iris' : 'curtain';
+    const beatText = nextMode === 'personal'
+      ? '> entering personal mode · akash@kelvin'
+      : '> recruiter mode · akashreya.space';
+    setTransOverlay({ direction, beatText, phase: 'in' });
+    setTimeout(() => {
+      setModeRaw(nextMode);
+      localStorage.setItem('akashreya.mode', nextMode);
+    }, 260);
+    setTimeout(() => setTransOverlay(o => o ? { ...o, phase: 'out' } : null), 380);
+    setTimeout(() => setTransOverlay(null), 700);
+  }, [transOverlay]);
 
   useEffect(() => {
-    applyTheme(themeName, mode);
-  }, [themeName, mode]);
+    applyTheme(mode, tone);
+  }, [mode, tone]);
 
   useEffect(() => {
     function onKey(e) {
       if (e.target && /input|textarea/i.test(e.target.tagName)) return;
-      if (e.key === 't' || e.key === 'T') {
-        setThemeName(n => n === 'crimson' ? 'glass' : 'crimson');
-      } else if (e.key === 'm' || e.key === 'M') {
-        setMode(m => m === 'dark' ? 'light' : 'dark');
+      if ((e.key === 'm' || e.key === 'M') && PERSONAL_MODE_ENABLED) {
+        triggerModeTransition(modeRef.current === 'recruiter' ? 'personal' : 'recruiter');
+      } else if (e.key === 't' || e.key === 'T') {
+        setTone(t => t === 'dark' ? 'light' : 'dark');
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [triggerModeTransition]);
 
   return (
-    <ThemeCtx.Provider value={{ themeName, mode, setThemeName, setMode }}>
+    <ThemeCtx.Provider value={{ mode, tone, setMode, setTone, triggerModeTransition, transOverlay }}>
       {children}
     </ThemeCtx.Provider>
   );

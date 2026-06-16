@@ -25,7 +25,7 @@
 }
 .cs-crumb .brand { font-family: var(--font-display); font-size: 18px; color: var(--ink); letter-spacing: -0.01em; }
 .cs-crumb .brand .dot { color: var(--accent); padding: 0 2px; }
-[data-theme="glass"] .cs-crumb .brand .dot { padding: 0 4px; }
+[data-mode="personal"] .cs-crumb .brand .dot { padding: 0 4px; }
 .cs-crumb a { color: var(--ink2); }
 .cs-crumb a:hover { color: var(--accent); }
 .cs-crumb .arrow { color: var(--ink3); }
@@ -49,7 +49,7 @@
   line-height: 1; letter-spacing: -0.03em;
   margin: 0; font-weight: 400; font-style: italic;
 }
-[data-theme="glass"] .cs-title {
+[data-mode="personal"] .cs-title {
   font-style: normal; font-weight: 300;
   background: linear-gradient(135deg, var(--ink) 0%, var(--accent2) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -60,7 +60,7 @@
   font-size: clamp(20px, 2.4vw, 28px); line-height: 1.35;
   color: var(--ink2); max-width: 720px; margin: 0;
 }
-[data-theme="glass"] .cs-lede { font-style: normal; font-weight: 300; font-family: var(--font-body); }
+[data-mode="personal"] .cs-lede { font-style: normal; font-weight: 300; font-family: var(--font-body); }
 
 .cs-meta {
   display: flex; flex-wrap: wrap; gap: 32px;
@@ -88,7 +88,7 @@
   font-size: clamp(28px, 3.4vw, 44px); line-height: 1.05; letter-spacing: -0.025em;
   margin: 0; font-weight: 400;
 }
-[data-theme="crimson"] .cs-section__title em { color: var(--accent); }
+[data-mode="recruiter"] .cs-section__title em { color: var(--accent); }
 
 .cs-prose { max-width: 720px; }
 .cs-prose p { font-size: 17px; line-height: 1.75; color: var(--ink2); margin: 0 0 18px; }
@@ -103,7 +103,7 @@
   font-family: var(--font-display); font-style: italic; font-size: 22px;
   color: var(--ink); line-height: 1.45;
 }
-[data-theme="glass"] .cs-prose blockquote { font-style: normal; font-weight: 300; font-family: var(--font-body); }
+[data-mode="personal"] .cs-prose blockquote { font-style: normal; font-weight: 300; font-family: var(--font-body); }
 .cs-prose ul, .cs-prose ol { color: var(--ink2); font-size: 17px; line-height: 1.75; padding-left: 24px; }
 .cs-prose li { margin-bottom: 8px; }
 
@@ -115,7 +115,7 @@
   font-family: var(--font-display); font-size: clamp(32px, 4vw, 44px);
   color: var(--accent); line-height: 1; letter-spacing: -0.02em; font-weight: 400;
 }
-[data-theme="glass"] .cs-metric .v { font-weight: 300; font-family: var(--font-body); color: var(--accent2); }
+[data-mode="personal"] .cs-metric .v { font-weight: 300; font-family: var(--font-body); color: var(--accent2); }
 .cs-metric .l {
   margin-top: 8px;
   font-family: var(--font-mono); font-size: 10px;
@@ -147,7 +147,7 @@
   font-family: var(--font-display); font-size: 24px; line-height: 1.2;
   font-weight: 400; font-style: italic; letter-spacing: -0.015em; color: var(--ink);
 }
-[data-theme="glass"] .cs-decision__choice { font-style: normal; font-weight: 500; }
+[data-mode="personal"] .cs-decision__choice { font-style: normal; font-weight: 500; }
 .cs-decision__alts {
   font-family: var(--font-mono); font-size: 10px; color: var(--ink3);
   letter-spacing: 0.12em; text-transform: uppercase; margin-top: 6px;
@@ -170,7 +170,7 @@
   font-style: italic; font-weight: 400; letter-spacing: -0.015em;
   color: var(--ink); margin: 0 0 6px;
 }
-[data-theme="glass"] .cs-phase__name { font-style: normal; font-weight: 500; }
+[data-mode="personal"] .cs-phase__name { font-style: normal; font-weight: 500; }
 .cs-phase__body { font-size: 15px; color: var(--ink2); line-height: 1.65; max-width: 600px; }
 
 .cs-tradeoffs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -193,7 +193,7 @@
   font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--ink);
   transition: background .2s, color .2s, transform .15s;
 }
-[data-theme="glass"] .cs-links a {
+[data-mode="personal"] .cs-links a {
   border: 1px solid var(--line); border-radius: 999px;
   background: var(--surf); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
@@ -205,7 +205,7 @@
   padding: 28px 32px; box-shadow: var(--surf-shadow);
   backdrop-filter: blur(var(--surf-blur)); -webkit-backdrop-filter: blur(var(--surf-blur));
 }
-[data-theme="glass"] .cs-outcome-card { border-left: 1px solid var(--line); border-top: 1px solid var(--accent); }
+[data-mode="personal"] .cs-outcome-card { border-left: 1px solid var(--line); border-top: 1px solid var(--accent); }
 
 .cs-foot {
   margin-top: 96px; padding-top: 28px; border-top: 1px solid var(--line);
@@ -215,3 +215,19 @@
 }
 .cs-foot a { color: var(--ink2); }
 .cs-foot a:hover { color: var(--accent); }
+
+@media (max-width: 900px) {
+  .theme-hint { display: inline-flex !important; bottom: 16px; right: 16px; padding: 6px 10px; }
+  .theme-hint .state { display: none; }
+}
+.theme-hint kbd.is-tappable {
+  cursor: pointer; min-width: 22px; min-height: 22px; padding: 3px 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line2));
+  color: var(--ink);
+  transition: background .15s, border-color .15s, color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.theme-hint kbd.is-tappable:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.theme-hint kbd.is-tappable:active { transform: translateY(1px); }

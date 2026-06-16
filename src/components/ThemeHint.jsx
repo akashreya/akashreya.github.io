@@ -1,12 +1,12 @@
 import { useTheme } from '../theme/ThemeProvider';
 
 export default function ThemeHint() {
-  const { themeName, mode } = useTheme();
+  const { mode, tone } = useTheme();
 
   return (
     <div className="theme-hint">
-      <kbd>T</kbd> theme · <kbd>M</kbd> mode
-      <span style={{ opacity: 0.6 }}>· {themeName} / {mode}</span>
+      <kbd>M</kbd> mode · <kbd>T</kbd> tone
+      <span style={{ opacity: 0.6 }}>· {mode} / {tone}</span>
     </div>
   );
 }

@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchMentions } from '../api/client';
 import { fallbackMentions } from '../data/fallback';
 import { useReveal } from '../hooks/useReveal';
+import { useTheme } from '../theme/ThemeProvider';
+import ThemeHint from '../components/ThemeHint';
 import '../styles/said.css';
+import ModeTransition from '../components/ModeTransition';
 
 const FILTER_LABELS = {
   all:     'All mentions',
@@ -54,6 +57,8 @@ function MentionCard({ m }) {
 export default function InTheWildPage() {
   const [mentions, setMentions] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
+  const { mode, triggerModeTransition } = useTheme();
+  const gridRef = useRef(null);
 
   useReveal([mentions, activeFilter]);
 
@@ -63,9 +68,20 @@ export default function InTheWildPage() {
       .catch(() => setMentions(fallbackMentions));
   }, []);
 
-  const visible = activeFilter === 'all'
-    ? mentions
-    : mentions.filter(m => m.kind === activeFilter);
+  useEffect(() => {
+    if (mode !== 'personal' || !gridRef.current) return;
+    const cards = Array.from(gridRef.current.querySelectorAll('.mention'));
+    cards.forEach(card => card.classList.remove('is-dropped'));
+    cards
+      .filter(card => activeFilter === 'all' || card.dataset.kind === activeFilter)
+      .forEach((card, i) => {
+        setTimeout(() => card.classList.add('is-dropped'), i * 70);
+      });
+  }, [mentions, activeFilter, mode]);
+
+  const visibleCount = activeFilter === 'all'
+    ? mentions.length
+    : mentions.filter(m => m.kind === activeFilter).length;
 
   return (
     <>
@@ -84,14 +100,14 @@ export default function InTheWildPage() {
 
         <div className="sd-filter-status reveal">
           <span><span className="current">{FILTER_LABELS[activeFilter]}</span></span>
-          <span className="count">{visible.length} {visible.length === 1 ? 'card' : 'cards'}</span>
+          <span className="count">{visibleCount} {visibleCount === 1 ? 'card' : 'cards'}</span>
         </div>
 
-        <div className="sd-grid">
-          {visible.map(m => (
+        <div className="sd-grid" ref={gridRef} data-filter={activeFilter}>
+          {mentions.map(m => (
             <MentionCard key={m.id} m={m} />
           ))}
-          {visible.length === 0 && (
+          {visibleCount === 0 && (
             <div className="sd-empty" style={{ display: 'block' }}>
               No mentions in this category yet.
             </div>
@@ -116,12 +132,20 @@ export default function InTheWildPage() {
           </button>
         ))}
         <span className="navpill__sep" />
-        <Link to="/" className="navpill__cmd">←</Link>
+        <button
+          className="navpill__mode"
+          onClick={() => triggerModeTransition(mode === 'recruiter' ? 'personal' : 'recruiter')}
+          aria-label="Toggle mode"
+        >
+          <span className="navpill__mode-dot" />
+          {mode === 'recruiter' ? 'Personal →' : 'Recruiter mode'}
+        </button>
+        <span className="navpill__sep" />
+        <Link to="/" className="navpill__item">← Back</Link>
       </nav>
 
-      <div className="theme-hint">
-        <kbd>T</kbd> theme · <kbd>M</kbd> mode
-      </div>
+      <ThemeHint />
+      <ModeTransition />
     </>
   );
 }
