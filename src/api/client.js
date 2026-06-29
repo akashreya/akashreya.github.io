@@ -20,7 +20,14 @@ function normalizeMention(m) {
 export async function fetchSite() {
   try {
     const res = await axiosInstance.get('/api/site', { withCredentials: false });
-    return res.data;
+    const data = res.data;
+    // Validate v3 shape: hero.stats must be an array
+    const voice = data?.recruiter ?? data;
+    if (!Array.isArray(voice?.hero?.stats)) {
+      console.warn('GET /api/site: v2 shape detected, using fallback');
+      return { recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite };
+    }
+    return data;
   } catch {
     console.warn('GET /api/site failed, using fallback');
     return { recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite };
@@ -67,7 +74,7 @@ export function resolveVoice(siteData, mode) {
   const fallback = mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
   if (!siteData) return fallback;
   if (siteData.recruiter && siteData.personal) {
-    return { ...fallback, ...(siteData[mode] ?? {}) };
+    return siteData[mode] ?? fallback;
   }
-  return { ...fallback, ...siteData };
+  return siteData;
 }
