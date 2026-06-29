@@ -1,6 +1,6 @@
 export const themes = {
-  crimson: {
-    name: 'crimson',
+  recruiter: {
+    name: 'recruiter',
     fonts: {
       display: '"Instrument Serif", "Cormorant Garamond", Georgia, serif',
       body:    '"Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
@@ -48,10 +48,10 @@ export const themes = {
     },
   },
 
-  glass: {
-    name: 'glass',
+  personal: {
+    name: 'personal',
     fonts: {
-      display: '"Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+      display: '"Baloo 2", "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
       body:    '"Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
       mono:    '"IBM Plex Mono", "JetBrains Mono", monospace',
     },
@@ -78,8 +78,8 @@ export const themes = {
     dark: {
       bg:          '#0a0814',
       bg2:         '#13102a',
-      surf:        'rgba(255,255,255,0.04)',
-      surf2:       'rgba(20,15,40,0.55)',
+      surf:        'rgba(20,15,40,0.55)',
+      surf2:       'rgba(20,15,40,0.72)',
       line:        'rgba(155,138,255,0.18)',
       line2:       'rgba(255,255,255,0.10)',
       ink:         '#f0ecff',
@@ -98,17 +98,17 @@ export const themes = {
   },
 };
 
-export function applyTheme(themeName, mode) {
-  const theme = themes[themeName];
+export function applyTheme(modeName, tone) {
+  const theme = themes[modeName];
   if (!theme) return;
   const root = document.documentElement;
-  const tokens = theme[mode];
+  const tokens = theme[tone];
   for (const [k, v] of Object.entries(tokens)) {
     root.style.setProperty('--' + k, v);
   }
   root.style.setProperty('--font-display', theme.fonts.display);
   root.style.setProperty('--font-body',    theme.fonts.body);
   root.style.setProperty('--font-mono',    theme.fonts.mono);
-  root.dataset.theme = themeName;
-  root.dataset.mode  = mode;
+  root.dataset.mode = modeName;
+  root.dataset.tone = tone;
 }

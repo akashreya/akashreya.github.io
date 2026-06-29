@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTheme } from '../theme/ThemeProvider';
 
 function ProjectCard({ p }) {
   const isLive = p.kind === 'live';
@@ -57,10 +58,12 @@ function ProjectCard({ p }) {
 }
 
 export default function Projects({ projects }) {
+  const { mode } = useTheme();
+
   return (
     <section id="projects" className="page">
       <div className="section-head reveal">
-        <h2>Selected <em>work</em>.</h2>
+        <h2>{mode === 'personal' ? <>things i <em>made</em>.</> : <>Selected <em>work</em>.</>}</h2>
         <span className="nb">§ III</span>
       </div>
       <div className="projects">

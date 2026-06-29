@@ -2,7 +2,12 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { fetchCaseStudy } from '../api/client';
 import { useReveal } from '../hooks/useReveal';
+import { useTheme } from '../theme/ThemeProvider';
 import '../styles/case-study.css';
+import ModeTransition from '../components/ModeTransition';
+import ThemeHint from '../components/ThemeHint';
+import ServiceInspector from '../components/ServiceInspector';
+import PokeTypeAtmosphere from '../components/PokeTypeAtmosphere';
 
 const SECTIONS = [
   { num: 'I',   label: 'Overview',     target: 'overview' },
@@ -12,6 +17,17 @@ const SECTIONS = [
   { num: 'V',   label: 'Process',      target: 'process' },
   { num: 'VI',  label: 'Outcome',      target: 'outcome' },
 ];
+
+const TYPE_PAIRS = {
+  poketopia: {
+    overview:     'flying-psychic',
+    problem:      'ghost-dark',
+    architecture: 'electric-ice',
+    decisions:    'fire-fighting',
+    process:      'grass-water',
+    outcome:      'dragon-fairy',
+  },
+};
 
 function useActiveSectionSpy(ids) {
   const [activeSection, setActiveSection] = useState(ids[0]);
@@ -43,6 +59,7 @@ function useActiveSectionSpy(ids) {
 
 export default function CaseStudyPage() {
   const { slug } = useParams();
+  const { mode, triggerModeTransition } = useTheme();
   const [loading, setLoading] = useState(true);
   const [study, setStudy] = useState(null);
   const [notFound, setNotFound] = useState(false);
@@ -51,6 +68,8 @@ export default function CaseStudyPage() {
   const activeSection = useActiveSectionSpy(sectionIds);
 
   useReveal([study]);
+
+  const typePairs = TYPE_PAIRS[slug] || {};
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +123,11 @@ export default function CaseStudyPage() {
       </div>
 
       <main className="cs-shell">
-        <section id="overview" className="cs-hero reveal">
+        <section
+          id="overview"
+          className={'cs-hero reveal' + (typePairs.overview ? ' t-section' : '')}
+          {...(typePairs.overview ? { 'data-type-pair': typePairs.overview } : {})}
+        >
           <div className="cs-eyebrow">{study.overview.eyebrow}</div>
           <h1 className="cs-title">{study.overview.title}</h1>
           <p className="cs-lede">{study.overview.lede}</p>
@@ -123,7 +146,7 @@ export default function CaseStudyPage() {
           </div>
         </section>
 
-        <section className="cs-section reveal">
+        <section id="metrics-section" className="cs-section reveal">
           <div className="cs-metrics">
             {study.metrics.map((m, i) => (
               <div key={i} className="cs-metric">
@@ -134,17 +157,31 @@ export default function CaseStudyPage() {
           </div>
         </section>
 
-        <section id="problem" className="cs-section reveal">
+        <section
+          id="problem"
+          className={'cs-section reveal' + (typePairs.problem ? ' t-section' : '')}
+          {...(typePairs.problem ? { 'data-type-pair': typePairs.problem } : {})}
+        >
           <div className="cs-section__head">
-            <h2 className="cs-section__title">{study.problem.title}</h2>
+            <h2 className="cs-section__title">
+              {typePairs.problem && <span className="t-dots"><span className="a"/><span className="b"/></span>}
+              {study.problem.title}
+            </h2>
             <span className="cs-section__num">§ II</span>
           </div>
           <div className="cs-prose" dangerouslySetInnerHTML={{ __html: study.problem.body }} />
         </section>
 
-        <section id="architecture" className="cs-section reveal">
+        <section
+          id="architecture"
+          className={'cs-section reveal' + (typePairs.architecture ? ' t-section' : '')}
+          {...(typePairs.architecture ? { 'data-type-pair': typePairs.architecture } : {})}
+        >
           <div className="cs-section__head">
-            <h2 className="cs-section__title">{study.architecture.title}</h2>
+            <h2 className="cs-section__title">
+              {typePairs.architecture && <span className="t-dots"><span className="a"/><span className="b"/></span>}
+              {study.architecture.title}
+            </h2>
             <span className="cs-section__num">§ III</span>
           </div>
           <div className="cs-prose" dangerouslySetInnerHTML={{ __html: study.architecture.intro }} />
@@ -152,9 +189,16 @@ export default function CaseStudyPage() {
           <div className="cs-prose" dangerouslySetInnerHTML={{ __html: study.architecture.outro }} />
         </section>
 
-        <section id="decisions" className="cs-section reveal">
+        <section
+          id="decisions"
+          className={'cs-section reveal' + (typePairs.decisions ? ' t-section' : '')}
+          {...(typePairs.decisions ? { 'data-type-pair': typePairs.decisions } : {})}
+        >
           <div className="cs-section__head">
-            <h2 className="cs-section__title">{study.decisions.title}</h2>
+            <h2 className="cs-section__title">
+              {typePairs.decisions && <span className="t-dots"><span className="a"/><span className="b"/></span>}
+              {study.decisions.title}
+            </h2>
             <span className="cs-section__num">§ IV</span>
           </div>
           <div className="cs-decisions">
@@ -170,9 +214,16 @@ export default function CaseStudyPage() {
           </div>
         </section>
 
-        <section id="process" className="cs-section reveal">
+        <section
+          id="process"
+          className={'cs-section reveal' + (typePairs.process ? ' t-section' : '')}
+          {...(typePairs.process ? { 'data-type-pair': typePairs.process } : {})}
+        >
           <div className="cs-section__head">
-            <h2 className="cs-section__title">{study.process.title}</h2>
+            <h2 className="cs-section__title">
+              {typePairs.process && <span className="t-dots"><span className="a"/><span className="b"/></span>}
+              {study.process.title}
+            </h2>
             <span className="cs-section__num">§ V</span>
           </div>
           <div className="cs-process">
@@ -204,9 +255,16 @@ export default function CaseStudyPage() {
           </div>
         </section>
 
-        <section id="outcome" className="cs-section reveal">
+        <section
+          id="outcome"
+          className={'cs-section reveal' + (typePairs.outcome ? ' t-section' : '')}
+          {...(typePairs.outcome ? { 'data-type-pair': typePairs.outcome } : {})}
+        >
           <div className="cs-section__head">
-            <h2 className="cs-section__title">{study.outcome.title}</h2>
+            <h2 className="cs-section__title">
+              {typePairs.outcome && <span className="t-dots"><span className="a"/><span className="b"/></span>}
+              {study.outcome.title}
+            </h2>
             <span className="cs-section__num">§ VI</span>
           </div>
           <div className="cs-outcome-card cs-prose" dangerouslySetInnerHTML={{ __html: study.outcome.body }} />
@@ -235,12 +293,39 @@ export default function CaseStudyPage() {
           </button>
         ))}
         <span className="navpill__sep" />
+        <button
+          className="navpill__mode"
+          onClick={() => triggerModeTransition(mode === 'recruiter' ? 'personal' : 'recruiter')}
+          aria-label="Toggle mode"
+        >
+          <span className="navpill__mode-dot" />
+          {mode === 'recruiter' ? 'Personal →' : 'Recruiter mode'}
+        </button>
+        <span className="navpill__sep" />
         <Link to="/#projects" className="navpill__cmd">←</Link>
       </nav>
 
-      <div className="theme-hint">
-        <kbd>T</kbd> theme · <kbd>M</kbd> mode
-      </div>
+      <ThemeHint />
+      <ModeTransition />
+
+      {slug === 'fico-cod-rto' && (
+        <ServiceInspector
+          data={study}
+          endpoint={`/api/v1/projects/${slug}`}
+          statusMs={12}
+          keyMap={{
+            overview:     'overview',
+            metrics:      'metrics-section',
+            problem:      'problem',
+            architecture: 'architecture',
+            decisions:    'decisions',
+            process:      'process',
+            outcome:      'outcome',
+          }}
+          footer={`GET /api/v1/projects/${slug} · the same panel we showed the judges.`}
+        />
+      )}
+      {slug === 'poketopia' && <PokeTypeAtmosphere />}
     </>
   );
 }

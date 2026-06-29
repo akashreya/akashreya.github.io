@@ -1,5 +1,5 @@
 import axiosInstance from './axios';
-import { fallbackSite, fallbackProjects, fallbackMentions } from '../data/fallback';
+import { fallbackSite, fallbackProjects, fallbackMentions, fallbackSiteRecruiter, fallbackSitePersonal, fallbackCaseStudies } from '../data/fallback';
 
 function normalizeProject(p) {
   return {
@@ -23,7 +23,7 @@ export async function fetchSite() {
     return res.data;
   } catch {
     console.warn('GET /api/site failed, using fallback');
-    return fallbackSite;
+    return { recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite };
   }
 }
 
@@ -45,8 +45,9 @@ export async function fetchCaseStudy(slug) {
     return { data: res.data, notFound: false };
   } catch (err) {
     if (err.response?.status === 404) return { data: null, notFound: true };
-    console.warn(`GET /api/projects/${slug} failed`);
-    return { data: null, notFound: false };
+    console.warn(`GET /api/projects/${slug} failed, using fallback`);
+    const fallback = fallbackCaseStudies[slug];
+    return { data: fallback ?? null, notFound: !fallback };
   }
 }
 
@@ -60,4 +61,12 @@ export async function fetchMentions() {
     console.warn('GET /api/mentions failed, using fallback');
     return fallbackMentions;
   }
+}
+
+export function resolveVoice(siteData, mode) {
+  if (!siteData) return mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
+  if (siteData.recruiter && siteData.personal) {
+    return siteData[mode] ?? (mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter);
+  }
+  return siteData;
 }
