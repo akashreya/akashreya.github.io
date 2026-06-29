@@ -12,7 +12,7 @@ export default function Principles({ principles }) {
       </div>
       <div className="principles">
         <div className="principles__quote reveal">
-          {quote.pre} <em>{quote.strong}</em>{quote.post}
+          {quote?.pre} <em>{quote?.strong}</em>{quote?.post}
         </div>
         <div className="principles__list reveal">
           {items.map(p => (

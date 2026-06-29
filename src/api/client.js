@@ -64,9 +64,10 @@ export async function fetchMentions() {
 }
 
 export function resolveVoice(siteData, mode) {
-  if (!siteData) return mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
+  const fallback = mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
+  if (!siteData) return fallback;
   if (siteData.recruiter && siteData.personal) {
-    return siteData[mode] ?? (mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter);
+    return { ...fallback, ...(siteData[mode] ?? {}) };
   }
-  return siteData;
+  return { ...fallback, ...siteData };
 }
