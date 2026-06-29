@@ -68,6 +68,17 @@ export default function Hero({ hero }) {
           <br />
           <em>{nameLast}</em>
         </h1>
+        <div className="hero__location">
+          <div className="hero__map">
+            <div className="hero__map-pin" />
+          </div>
+          <span className="hero__loc-label">
+            <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+              <path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 8 5 8s5-4.25 5-8c0-2.76-2.24-5-5-5zm0 6.75A1.75 1.75 0 1 1 5 3.25a1.75 1.75 0 0 1 0 3.5z" fill="currentColor"/>
+            </svg>
+            Bengaluru · IST
+          </span>
+        </div>
         <div className="hero__sub">{title}</div>
       </div>
       <div className="hero__right reveal">

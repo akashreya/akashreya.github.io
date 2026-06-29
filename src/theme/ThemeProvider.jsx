@@ -21,6 +21,9 @@ export function ThemeProvider({ children }) {
   const modeRef = useRef(mode);
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
+  const toneRef = useRef(tone);
+  useEffect(() => { toneRef.current = tone; }, [tone]);
+
   const setMode = (m) => {
     const next = typeof m === 'function' ? m(mode) : m;
     setModeRaw(next);
@@ -60,10 +63,16 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     function onKey(e) {
       if (e.target && /input|textarea/i.test(e.target.tagName)) return;
-      if ((e.key === 'm' || e.key === 'M') && PERSONAL_MODE_ENABLED) {
-        triggerModeTransition(modeRef.current === 'recruiter' ? 'personal' : 'recruiter');
-      } else if (e.key === 't' || e.key === 'T') {
-        setTone(t => t === 'dark' ? 'light' : 'dark');
+      if (PERSONAL_MODE_ENABLED) {
+        if (e.key === 'm' || e.key === 'M') {
+          triggerModeTransition(modeRef.current === 'recruiter' ? 'personal' : 'recruiter');
+        } else if (e.key === 't' || e.key === 'T') {
+          setTone(toneRef.current === 'dark' ? 'light' : 'dark');
+        }
+      } else {
+        if (e.key === 'm' || e.key === 'M') {
+          setTone(toneRef.current === 'dark' ? 'light' : 'dark');
+        }
       }
     }
     window.addEventListener('keydown', onKey);
