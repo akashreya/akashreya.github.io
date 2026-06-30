@@ -548,7 +548,7 @@ section { scroll-margin-top: 24px; }
   flex-wrap: wrap; gap: 10px;
 }
 
-/* hidden theme hint (bottom-right) — keeps the "press T" affordance discoverable but quiet */
+/* tone toggle — bottom-right on desktop, top-right pill on mobile */
 .theme-hint {
   position: fixed; bottom: 24px; right: 24px; z-index: 40;
   padding: 8px 12px; border-radius: 999px;
@@ -560,13 +560,27 @@ section { scroll-margin-top: 24px; }
   opacity: 0.7;
   user-select: none;
   display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+  /* button reset */
+  appearance: none; -webkit-appearance: none;
+  outline: none;
+  transition: opacity .18s, transform .12s;
 }
+.theme-hint:hover { opacity: 1; }
+.theme-hint:active { transform: scale(0.96); }
 .theme-hint kbd {
   font-family: var(--font-mono); font-size: 10px;
   padding: 1px 6px; border: 1px solid var(--line2); border-radius: 4px;
   color: var(--ink);
 }
-@media (max-width: 900px) { .theme-hint { display: none; } }
+@media (max-width: 900px) {
+  .theme-hint {
+    /* move to top-right so it never overlaps the bottom nav pill */
+    bottom: auto; top: 14px; right: 14px;
+  }
+  /* drop the keyboard hint — no keyboard on mobile */
+  .theme-hint__hint { display: none; }
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PERSONAL MODE — design language overrides
