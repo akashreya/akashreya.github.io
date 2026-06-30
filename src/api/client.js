@@ -73,7 +73,7 @@ export function resolveVoice(siteData, mode) {
   const fallback = mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
   if (!siteData) return fallback;
   if (siteData.recruiter && siteData.personal) {
-    return siteData[mode] ?? fallback;
+    return { ...fallback, ...(siteData[mode] ?? {}) };
   }
-  return siteData;
+  return { ...fallback, ...siteData };
 }

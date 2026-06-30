@@ -40,9 +40,9 @@ export default function PortfolioPage() {
       <Projects projects={projects} />
       <SideQuests />
       <Principles principles={resolved.principles} />
-      <Enterprise enterprise={site.enterprise} contact={site.contact} />
+      <Enterprise enterprise={resolved.enterprise} contact={resolved.contact} />
       <Footer brand={resolved.brand} contact={resolved.contact} />
-      <NavPill items={site.nav} />
+      <NavPill items={resolved.nav} />
       <ThemeHint />
       <ModeTransition />
     </>
