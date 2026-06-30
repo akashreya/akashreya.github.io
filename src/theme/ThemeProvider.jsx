@@ -5,17 +5,22 @@ import { PERSONAL_MODE_ENABLED } from '../config';
 const ThemeCtx = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const url = new URL(window.location.href);
-  const savedMode = localStorage.getItem('akashreya.mode');
-  const savedTone = localStorage.getItem('akashreya.tone');
+  const [mode, setModeRaw] = useState(() => {
+    const url = new URL(window.location.href);
+    const savedMode = localStorage.getItem('akashreya.mode');
+    const startMode = PERSONAL_MODE_ENABLED
+      ? (url.searchParams.get('mode') || savedMode || 'recruiter')
+      : 'recruiter';
+    return themes[startMode] ? startMode : 'recruiter';
+  });
 
-  const startMode = PERSONAL_MODE_ENABLED
-    ? (url.searchParams.get('mode') || savedMode || 'recruiter')
-    : 'recruiter';
-  const startTone = url.searchParams.get('tone') || savedTone || 'dark';
+  const [tone, setToneRaw] = useState(() => {
+    const url = new URL(window.location.href);
+    const savedTone = localStorage.getItem('akashreya.tone');
+    const startTone = url.searchParams.get('tone') || savedTone || 'dark';
+    return ['light', 'dark'].includes(startTone) ? startTone : 'dark';
+  });
 
-  const [mode, setModeRaw] = useState(themes[startMode] ? startMode : 'recruiter');
-  const [tone, setToneRaw] = useState(['light', 'dark'].includes(startTone) ? startTone : 'dark');
   const [transOverlay, setTransOverlay] = useState(null);
 
   const modeRef = useRef(mode);
