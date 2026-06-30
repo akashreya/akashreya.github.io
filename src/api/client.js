@@ -21,10 +21,9 @@ export async function fetchSite() {
   try {
     const res = await axiosInstance.get('/api/site', { withCredentials: false });
     const data = res.data;
-    // Validate v3 shape: hero.stats must be an array
-    const voice = data?.recruiter ?? data;
-    if (!Array.isArray(voice?.hero?.stats)) {
-      console.warn('GET /api/site: v2 shape detected, using fallback');
+    // v3 requires nested recruiter/personal keys with hero.stats array
+    if (!Array.isArray(data?.recruiter?.hero?.stats)) {
+      console.warn('GET /api/site: not v3 shape, using fallback');
       return { recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite };
     }
     return data;
