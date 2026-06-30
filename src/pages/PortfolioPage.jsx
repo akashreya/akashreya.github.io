@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchSite, fetchProjects, resolveVoice } from '../api/client';
-import { fallbackSite, fallbackProjects, fallbackSiteRecruiter, fallbackSitePersonal } from '../data/fallback';
+import { fallbackProjects } from '../data/fallback';
 import { useTheme } from '../theme/ThemeProvider';
 import { useReveal } from '../hooks/useReveal';
 import NavPill from '../components/NavPill';
@@ -18,7 +18,7 @@ import Enterprise from '../sections/Enterprise';
 import Footer from '../sections/Footer';
 
 export default function PortfolioPage() {
-  const [site, setSite] = useState({ recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite });
+  const [site, setSite] = useState(null);
   const [projects, setProjects] = useState(fallbackProjects);
   const { mode } = useTheme();
   const resolved = resolveVoice(site, mode);

@@ -17,19 +17,28 @@ function normalizeMention(m) {
   return { ...m, kind: m.kind?.toLowerCase() };
 }
 
+// Resolve a "voiced" field: {recruiter: T, personal: T} → T for the given mode.
+// Flat values (strings, arrays, plain objects without recruiter/personal) pass through unchanged.
+function pickVoice(field, mode) {
+  if (
+    field !== null &&
+    field !== undefined &&
+    typeof field === 'object' &&
+    !Array.isArray(field) &&
+    ('recruiter' in field || 'personal' in field)
+  ) {
+    return field[mode] ?? field.recruiter ?? field.personal;
+  }
+  return field;
+}
+
 export async function fetchSite() {
   try {
     const res = await axiosInstance.get('/api/site', { withCredentials: false });
-    const data = res.data;
-    // v3 requires nested recruiter/personal keys with hero.stats array
-    if (!Array.isArray(data?.recruiter?.hero?.stats)) {
-      console.warn('GET /api/site: not v3 shape, using fallback');
-      return { recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite };
-    }
-    return data;
+    return res.data ?? null;
   } catch {
     console.warn('GET /api/site failed, using fallback');
-    return { recruiter: fallbackSiteRecruiter, personal: fallbackSitePersonal, ...fallbackSite };
+    return null;
   }
 }
 
@@ -72,8 +81,23 @@ export async function fetchMentions() {
 export function resolveVoice(siteData, mode) {
   const fallback = mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
   if (!siteData) return fallback;
+
+  // v3: top-level recruiter/personal split
   if (siteData.recruiter && siteData.personal) {
     return { ...fallback, ...(siteData[mode] ?? {}) };
   }
-  return { ...fallback, ...siteData };
+
+  // v2: per-field {recruiter, personal} wrappers — resolve each field by mode
+  return {
+    brand: siteData.brand ? {
+      ...siteData.brand,
+      tagline: pickVoice(siteData.brand.tagline, mode) ?? fallback.brand?.tagline,
+    } : fallback.brand,
+    hero: pickVoice(siteData.hero, mode) ?? fallback.hero,
+    liveBanner: pickVoice(siteData.liveBanner, mode) ?? fallback.liveBanner,
+    principles: pickVoice(siteData.principles, mode) ?? fallback.principles,
+    nav: pickVoice(siteData.nav, mode) ?? fallback.nav,
+    enterprise: siteData.enterprise ?? fallback.enterprise,
+    contact: siteData.contact ?? fallback.contact,
+  };
 }
