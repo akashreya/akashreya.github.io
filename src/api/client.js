@@ -2,11 +2,12 @@ import axiosInstance from './axios';
 import { fallbackSite, fallbackProjects, fallbackMentions, fallbackSiteRecruiter, fallbackSitePersonal, fallbackCaseStudies } from '../data/fallback';
 
 function normalizeProject(p) {
+  const rawDesc = p.shortDescription ?? p.desc ?? '';
   return {
     ...p,
     kind: p.kind?.toLowerCase(),
     span: p.span?.toLowerCase(),
-    desc: p.shortDescription ?? p.desc ?? '',
+    desc: pickVoice(rawDesc, 'recruiter'),
     tags: Array.isArray(p.technologies)
       ? p.technologies.map(t => t.name)
       : (p.tags ?? []),
