@@ -67,7 +67,7 @@ export default function CaseStudyPage() {
   const sectionIds = SECTIONS.map(s => s.target);
   const activeSection = useActiveSectionSpy(sectionIds);
 
-  useReveal([study]);
+  useReveal(study);
 
   const typePairs = TYPE_PAIRS[slug] || {};
 

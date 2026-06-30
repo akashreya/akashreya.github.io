@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function useReveal(deps = []) {
+export function useReveal(...deps) {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +33,7 @@ export function useReveal(deps = []) {
 
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return containerRef;

@@ -60,7 +60,7 @@ export default function InTheWildPage() {
   const { mode, triggerModeTransition } = useTheme();
   const gridRef = useRef(null);
 
-  useReveal([mentions, activeFilter]);
+  useReveal(mentions, activeFilter);
 
   useEffect(() => {
     fetchMentions()
