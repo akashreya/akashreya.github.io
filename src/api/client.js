@@ -55,10 +55,20 @@ export async function fetchProjects() {
   }
 }
 
-export async function fetchCaseStudy(slug) {
+function normalizeCaseStudy(data, mode) {
+  if (!data) return data;
+  return {
+    ...data,
+    overview: data.overview ? { ...data.overview, lede: pickVoice(data.overview.lede, mode) } : data.overview,
+    problem:  data.problem  ? { ...data.problem,  body: pickVoice(data.problem.body,  mode) } : data.problem,
+    outcome:  data.outcome  ? { ...data.outcome,  body: pickVoice(data.outcome.body,  mode) } : data.outcome,
+  };
+}
+
+export async function fetchCaseStudy(slug, mode = 'recruiter') {
   try {
     const res = await axiosInstance.get(`/api/projects/${slug}`, { withCredentials: false });
-    return { data: res.data, notFound: false };
+    return { data: normalizeCaseStudy(res.data, mode), notFound: false };
   } catch (err) {
     if (err.response?.status === 404) return { data: null, notFound: true };
     console.warn(`GET /api/projects/${slug} failed, using fallback`);

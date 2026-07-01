@@ -78,7 +78,7 @@ export default function CaseStudyPage() {
     setNotFound(false);
     setStudy(null);
 
-    fetchCaseStudy(slug)
+    fetchCaseStudy(slug, mode)
       .then(({ data, notFound: nf }) => {
         if (cancelled) return;
         if (nf || !data) {
