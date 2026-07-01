@@ -18,6 +18,8 @@ const SECTIONS = [
   { num: 'VI',  label: 'Outcome',      target: 'outcome' },
 ];
 
+const SECTION_IDS = SECTIONS.map(s => s.target);
+
 const TYPE_PAIRS = {
   poketopia: {
     overview:     'flying-psychic',
@@ -64,8 +66,7 @@ export default function CaseStudyPage() {
   const [study, setStudy] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
-  const sectionIds = SECTIONS.map(s => s.target);
-  const activeSection = useActiveSectionSpy(sectionIds);
+  const activeSection = useActiveSectionSpy(SECTION_IDS);
 
   useReveal(study);
 
@@ -86,7 +87,8 @@ export default function CaseStudyPage() {
           setStudy(data);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[CaseStudyPage] fetch error:', err);
         if (!cancelled) setNotFound(true);
       })
       .finally(() => {
@@ -148,7 +150,7 @@ export default function CaseStudyPage() {
 
         <section id="metrics-section" className="cs-section reveal">
           <div className="cs-metrics">
-            {study.metrics.map((m, i) => (
+            {(study.metrics ?? []).map((m, i) => (
               <div key={i} className="cs-metric">
                 <div className="v">{m.value}</div>
                 <div className="l">{m.label}</div>
@@ -202,7 +204,7 @@ export default function CaseStudyPage() {
             <span className="cs-section__num">§ IV</span>
           </div>
           <div className="cs-decisions">
-            {study.decisions.items.map((d, i) => (
+            {(study.decisions?.items ?? []).map((d, i) => (
               <div key={i} className="cs-decision">
                 <div>
                   <div className="cs-decision__choice">{d.choice}</div>
@@ -227,7 +229,7 @@ export default function CaseStudyPage() {
             <span className="cs-section__num">§ V</span>
           </div>
           <div className="cs-process">
-            {study.process.phases.map((ph, i) => (
+            {(study.process?.phases ?? []).map((ph, i) => (
               <div key={i} className="cs-phase">
                 <div className="cs-phase__date">{ph.date}</div>
                 <div>
@@ -239,21 +241,23 @@ export default function CaseStudyPage() {
           </div>
         </section>
 
-        <section className="cs-section reveal">
-          <div className="cs-section__head">
-            <h2 className="cs-section__title">{study.tradeoffs.title}</h2>
-          </div>
-          <div className="cs-tradeoffs">
-            <div className="cs-tradeoff">
-              <div className="cs-tradeoff__l">What we gained</div>
-              <div className="cs-tradeoff__b">{study.tradeoffs.gained}</div>
+        {study.tradeoffs && (
+          <section className="cs-section reveal">
+            <div className="cs-section__head">
+              <h2 className="cs-section__title">Trade-offs</h2>
             </div>
-            <div className="cs-tradeoff">
-              <div className="cs-tradeoff__l">What we gave up</div>
-              <div className="cs-tradeoff__b">{study.tradeoffs.gaveUp}</div>
+            <div className="cs-tradeoffs">
+              <div className="cs-tradeoff">
+                <div className="cs-tradeoff__l">What we gained</div>
+                <div className="cs-tradeoff__b">{study.tradeoffs.gained}</div>
+              </div>
+              <div className="cs-tradeoff">
+                <div className="cs-tradeoff__l">What we gave up</div>
+                <div className="cs-tradeoff__b">{study.tradeoffs.gaveUp}</div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section
           id="outcome"
@@ -269,7 +273,7 @@ export default function CaseStudyPage() {
           </div>
           <div className="cs-outcome-card cs-prose" dangerouslySetInnerHTML={{ __html: study.outcome.body }} />
           <div className="cs-links">
-            {study.links.map((link, i) => (
+            {(study.links ?? []).map((link, i) => (
               <a key={i} href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
             ))}
           </div>
