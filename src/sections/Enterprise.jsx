@@ -22,7 +22,7 @@ export default function Enterprise({ enterprise, contact }) {
         <span className="nb">§ V</span>
       </div>
       <div className="enterprise">
-        {enterprise.map((e, i) => (
+        {(enterprise ?? []).map((e, i) => (
           <div key={i} className="ent-card reveal">
             <div className="ent-card__head">
               <span className="ent-card__client">{e.client}</span>

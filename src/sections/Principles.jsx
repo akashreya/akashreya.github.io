@@ -15,7 +15,7 @@ export default function Principles({ principles }) {
           {quote?.pre} <em>{quote?.strong}</em>{quote?.post}
         </div>
         <div className="principles__list reveal">
-          {items.map(p => (
+          {(items ?? []).map(p => (
             <div key={p.n} className="principle">
               <span className="principle__n">{p.n}</span>
               <span className="principle__b">

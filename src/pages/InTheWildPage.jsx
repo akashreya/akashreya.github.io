@@ -55,7 +55,7 @@ function MentionCard({ m }) {
 }
 
 export default function InTheWildPage() {
-  const [mentions, setMentions] = useState([]);
+  const [mentions, setMentions] = useState(fallbackMentions);
   const [activeFilter, setActiveFilter] = useState('all');
   const { mode, triggerModeTransition } = useTheme();
   const gridRef = useRef(null);

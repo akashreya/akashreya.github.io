@@ -37,13 +37,13 @@ function useScrollSpy(ids, offset = 140) {
 }
 
 export default function NavPill({ items }) {
-  const targets = items.map(item => item.target);
+  const targets = (items ?? []).map(item => item.target);
   const activeTarget = useScrollSpy(targets);
   const { mode, triggerModeTransition } = useTheme();
 
   return (
     <nav className="navpill">
-      {items.map(item => (
+      {(items ?? []).map(item => (
         <button
           key={item.id}
           className={`navpill__item${activeTarget === item.target ? ' active' : ''}`}
