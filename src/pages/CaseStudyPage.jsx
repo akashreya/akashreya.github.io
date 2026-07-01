@@ -199,7 +199,7 @@ export default function CaseStudyPage() {
           <div className="cs-section__head">
             <h2 className="cs-section__title">
               {typePairs.decisions && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.decisions.title}
+              {study.decisions?.title}
             </h2>
             <span className="cs-section__num">§ IV</span>
           </div>
@@ -224,7 +224,7 @@ export default function CaseStudyPage() {
           <div className="cs-section__head">
             <h2 className="cs-section__title">
               {typePairs.process && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.process.title}
+              {study.process?.title}
             </h2>
             <span className="cs-section__num">§ V</span>
           </div>
