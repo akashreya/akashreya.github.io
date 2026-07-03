@@ -55,14 +55,31 @@ export async function fetchProjects() {
   }
 }
 
+function isVoicedWrapper(field) {
+  return (
+    field !== null &&
+    field !== undefined &&
+    typeof field === 'object' &&
+    !Array.isArray(field) &&
+    ('recruiter' in field || 'personal' in field)
+  );
+}
+
+// Recursively unwraps any {recruiter, personal} node anywhere in the tree,
+// so rendering is safe regardless of which fields the backend chooses to voice.
+function deepResolveVoice(node, mode) {
+  if (isVoicedWrapper(node)) return pickVoice(node, mode);
+  if (Array.isArray(node)) return node.map(item => deepResolveVoice(item, mode));
+  if (node !== null && typeof node === 'object') {
+    return Object.fromEntries(
+      Object.entries(node).map(([key, value]) => [key, deepResolveVoice(value, mode)])
+    );
+  }
+  return node;
+}
+
 function normalizeCaseStudy(data, mode) {
-  if (!data) return data;
-  return {
-    ...data,
-    overview: data.overview ? { ...data.overview, lede: pickVoice(data.overview.lede, mode) } : data.overview,
-    problem:  data.problem  ? { ...data.problem,  body: pickVoice(data.problem.body,  mode) } : data.problem,
-    outcome:  data.outcome  ? { ...data.outcome,  body: pickVoice(data.outcome.body,  mode) } : data.outcome,
-  };
+  return data ? deepResolveVoice(data, mode) : data;
 }
 
 export async function fetchCaseStudy(slug, mode = 'recruiter') {
