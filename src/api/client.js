@@ -33,10 +33,25 @@ function pickVoice(field, mode) {
   return field;
 }
 
+const TTL_LANDING = 10 * 60 * 1000;  // main-page bundle: site + projects grid
+const TTL_CLICK = 5 * 60 * 1000;     // click-through pages: case study, mentions
+
+const _cache = new Map(); // key -> { value, expiresAt }
+
+async function withCache(key, ttlMs, producer) {
+  const hit = _cache.get(key);
+  if (hit && hit.expiresAt > performance.now()) return hit.value;
+  const value = await producer();
+  _cache.set(key, { value, expiresAt: performance.now() + ttlMs });
+  return value;
+}
+
 export async function fetchSite() {
   try {
-    const res = await axiosInstance.get('/api/site', { withCredentials: false });
-    return res.data ?? null;
+    return await withCache('site', TTL_LANDING, async () => {
+      const res = await axiosInstance.get('/api/site', { withCredentials: false });
+      return res.data ?? null;
+    });
   } catch {
     console.warn('GET /api/site failed, using fallback');
     return null;
@@ -45,10 +60,11 @@ export async function fetchSite() {
 
 export async function fetchProjects() {
   try {
-    const res = await axiosInstance.get('/api/projects', { withCredentials: false });
-    const data = res.data;
-    if (!Array.isArray(data) || data.length === 0) return fallbackProjects;
-    return data.map(normalizeProject);
+    return await withCache('projects', TTL_LANDING, async () => {
+      const data = (await axiosInstance.get('/api/projects', { withCredentials: false })).data;
+      if (!Array.isArray(data) || data.length === 0) throw new Error('empty projects response');
+      return data.map(normalizeProject);
+    });
   } catch {
     console.warn('GET /api/projects failed, using fallback');
     return fallbackProjects;
@@ -84,10 +100,16 @@ function normalizeCaseStudy(data, mode) {
 
 export async function fetchCaseStudy(slug, mode = 'recruiter') {
   try {
-    const res = await axiosInstance.get(`/api/projects/${slug}`, { withCredentials: false });
-    return { data: normalizeCaseStudy(res.data, mode), notFound: false };
-  } catch (err) {
-    if (err.response?.status === 404) return { data: null, notFound: true };
+    return await withCache(`case:${slug}:${mode}`, TTL_CLICK, async () => {
+      try {
+        const res = await axiosInstance.get(`/api/projects/${slug}`, { withCredentials: false });
+        return { data: normalizeCaseStudy(res.data, mode), notFound: false };
+      } catch (err) {
+        if (err.response?.status === 404) return { data: null, notFound: true };
+        throw err;
+      }
+    });
+  } catch {
     console.warn(`GET /api/projects/${slug} failed, using fallback`);
     const fallback = fallbackCaseStudies[slug];
     return { data: fallback ?? null, notFound: !fallback };
@@ -96,10 +118,11 @@ export async function fetchCaseStudy(slug, mode = 'recruiter') {
 
 export async function fetchMentions() {
   try {
-    const res = await axiosInstance.get('/api/mentions', { withCredentials: false });
-    const data = res.data;
-    if (!Array.isArray(data) || data.length === 0) return fallbackMentions;
-    return data.map(normalizeMention);
+    return await withCache('mentions', TTL_CLICK, async () => {
+      const data = (await axiosInstance.get('/api/mentions', { withCredentials: false })).data;
+      if (!Array.isArray(data) || data.length === 0) throw new Error('empty mentions response');
+      return data.map(normalizeMention);
+    });
   } catch {
     console.warn('GET /api/mentions failed, using fallback');
     return fallbackMentions;
