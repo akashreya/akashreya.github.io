@@ -154,6 +154,7 @@ test-results/
 
 # Local dev artifacts
 test-*.png
-.claude/
+.claude/*
+!.claude/skills/
 .playwright-mcp/
 tests/
