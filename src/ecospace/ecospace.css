@@ -1,0 +1,113 @@
+.eco-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  font-family: Consolas, "Cascadia Mono", Menlo, ui-monospace, monospace;
+}
+.eco-root canvas { display: block; }
+
+.eco-hud-hint {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #2b3f52;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 5px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.eco-hud-fly {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+}
+.eco-hud-fly-label {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #2b3f52;
+  text-align: right;
+  padding-right: 2px;
+}
+.eco-hud-fly button {
+  font: inherit;
+  font-size: 12px;
+  text-align: right;
+  color: #2b3f52;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(43, 63, 82, 0.25);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.eco-hud-fly button:hover { background: rgba(255, 255, 255, 0.85); }
+.eco-hud-fly button.on { border-color: #2e7d46; color: #2e7d46; }
+
+.eco-plate {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: #3a3a3a;
+  background: #f8f8e8;
+  border: 3px solid #5878a8;
+  box-shadow: inset 0 0 0 2px #fff;
+  border-radius: 6px;
+  padding: 7px 18px;
+  cursor: pointer;
+}
+.eco-plate span { color: #4f86c9; }
+
+.eco-dlg-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px 26px;
+  background: rgba(16, 24, 38, 0.18);
+}
+.eco-dlg {
+  position: relative;
+  max-width: 640px;
+  width: 100%;
+  background: #f8f8e8;
+  border: 3px solid #5878a8;
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 5px #405880;
+  border-radius: 6px;
+  padding: 14px 20px 18px;
+  color: #3a3a3a;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.eco-dlg-name {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5878a8;
+  margin-bottom: 6px;
+}
+.eco-dlg p { margin: 6px 0; }
+.eco-dlg-adv {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  color: #c94f4f;
+  font-size: 13px;
+  cursor: pointer;
+  animation: eco-blink 1s steps(2, start) infinite;
+}
+@keyframes eco-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .eco-dlg-adv { animation: none; }
+}
