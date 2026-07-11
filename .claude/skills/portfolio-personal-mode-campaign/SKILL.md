@@ -1,9 +1,9 @@
 ---
 name: portfolio-personal-mode-campaign
 description: >
-  Plan-of-record for launching PERSONAL MODE on akashreya.space — parchment identity built,
-  endpoints seeded, API wiring done; the flag's gate condition is MET and launch awaits the
-  owner's word + deploy gate. Load this when the task mentions: personal mode, the
+  Campaign record for PERSONAL MODE on akashreya.space — **LAUNCHED 2026-07-11** (commit
+  b2b9ca2): parchment identity, seeded sidequests/ticker, CDN buddy, all live. Remaining open
+  work: embed density (gate b). Load this when the task mentions: personal mode, the
   parchment/marauder's-map identity, Footprints, Chikorita, flipping PERSONAL_MODE_ENABLED,
   the old violet/glass theme or Baloo 2, "harry potter + pokemon + videogames + shreya ghoshal",
   embeds / per-project character / PokeTypeAtmosphere / ServiceInspector / LetterDrop, sidequests
@@ -15,14 +15,15 @@ description: >
 
 # Personal Mode Campaign
 
-The runbook for redesigning, seeding, and launching personal mode. **The flag's written gate —
-"flip to true when /api/sidequests + /api/ticker are live and seeded" (`src/config.js:1-2`) —
-is MET as of 2026-07-11.** Launch is now an owner decision plus the deploy gate, not blocked
-work. Status as of 2026-07-11:
+**PERSONAL MODE IS LAUNCHED — 2026-07-11, commit `b2b9ca2` (`PERSONAL_MODE_ENABLED = true` on
+main).** Post-deploy verification passed on https://akashreya.space the same day: recruiter
+default for fresh visitors, `M` toggles mode live, `?mode=personal` deep links survive the
+404 redirect, board serves the 7 API nodes, ticker the 9 API lines, Chikorita loads from
+CloudFront, poketypes atmosphere on. Status:
 
 | Item | State (2026-07-11) | Where |
 |---|---|---|
-| `PERSONAL_MODE_ENABLED` | `false` in git, `true` in the owner's working tree. **Gate condition met** — commit the flip via the launch protocol (e) on the owner's word | `src/config.js:3` |
+| `PERSONAL_MODE_ENABLED` | **`true` on main** (launched). M = mode toggle, T = tone toggle; `?mode=`/localStorage honored | `src/config.js:3` |
 | Personal theme | **Parchment identity SHIPPED** (`44d54c4`): Marauder's-Map prop palette, Fondamento display / Alegreya body / Sacramento script. Violet/glass + Baloo 2 are GONE. | `src/theme/themes.js` personal block |
 | Ambient identity layer | Footprints (cursor ink trail) + Chikorita (CDN-frame buddy) shipped in `44d54c4`, both personal-mode-gated | `src/components/Footprints.jsx`, `Chikorita.jsx` |
 | `/api/sidequests`, `/api/ticker` | **SEEDED on prod 2026-07-11** (7 nodes / 9 lines, content differs from the old hardcoded arrays). Local dev backend may still be `200 []`. | backend |

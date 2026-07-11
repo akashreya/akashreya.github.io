@@ -52,9 +52,9 @@ TTL cache: see **portfolio-api-and-fallback**. This skill covers the mechanics o
 ## 1.1 The feature flag (read this first)
 
 `src/config.js:3` — `export const PERSONAL_MODE_ENABLED = false;` (as of 2026-07-10).
-Personal mode is **built and launch-ready** (parchment identity shipped, endpoints seeded, API
-wiring done — the flag's gate condition is met as of 2026-07-11; launch is the owner's call via
-the campaign skill's protocol). While the committed flag is false, the deployed site is
+Personal mode is **LAUNCHED** (2026-07-11, commit `b2b9ca2` — flag `true` on main; M toggles
+mode, T toggles tone, `?mode=` honored). The paragraph below describes flag-OFF behavior —
+historical, and what returns if the flag is ever flipped back as a kill switch: the site is
 recruiter-mode-only: mode init hard-forces `'recruiter'` regardless of URL param or localStorage
 (`src/theme/ThemeProvider.jsx:12-15`), and `triggerModeTransition` is a no-op
 (`ThemeProvider.jsx:44`). Do not flip the flag as part of theme/content work — that is a gated

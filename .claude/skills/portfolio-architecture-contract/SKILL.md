@@ -67,7 +67,7 @@ Source: `ThemeProvider.jsx:68-85`. CLAUDE.md's "T/M keyboard shortcuts" is only 
 
 ## 2. PERSONAL_MODE_ENABLED — exactly what it gates
 
-`src/config.js` (the entire file, 3 lines): `export const PERSONAL_MODE_ENABLED = false;` in git as of 2026-07-11 (the owner's working tree flips it locally to work on personal mode). **The flag's written gate — "flip when /api/sidequests + /api/ticker are live and seeded" — is MET as of 2026-07-11**; the redesign (parchment identity) has landed. Launch = commit the flip via the launch protocol in `portfolio-personal-mode-campaign` (e), on the owner's word, behind the deploy gate. Still: never commit the flip as a side effect of any other task.
+`src/config.js` (the entire file, 3 lines): **`export const PERSONAL_MODE_ENABLED = true;` — LAUNCHED 2026-07-11 (commit `b2b9ca2`)**, after the flag's written gate (seeded sidequests/ticker) was met the same day. With the flag on: M = mode toggle (transition overlay), T = tone toggle, `?mode=` and `localStorage['akashreya.mode']` honored, NavPill shows the mode segment. The flag-off rows below describe the PRE-LAUNCH behavior — keep them for history and for any future kill-switch flip back to `false`.
 
 What `false` enforces:
 
