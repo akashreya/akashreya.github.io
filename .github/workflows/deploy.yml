@@ -34,6 +34,8 @@ jobs:
         env:
           # Falls back to the real API, not the admin UI, if the secret is ever unset.
           VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projectsapi.akashreya.space' }}
+          # No fallback on purpose: unset secret -> no CDN URL -> Chikorita degrades to absent.
+          VITE_CDN_URL: ${{ secrets.VITE_CDN_URL }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

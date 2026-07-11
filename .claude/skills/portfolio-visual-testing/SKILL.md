@@ -39,7 +39,8 @@ Terminology used below (full treatment in portfolio-architecture-contract): **mo
   - both modes: `hero`, `projects`, `principles`, `footer`
   - recruiter only: `enterprise`
   - personal only: `sidequests`, `enterprise-collapsed` (Enterprise renders a collapsed stub in personal mode)
-- Baselines: `tests/playwright-viewport.spec.ts-snapshots/` — **77 PNGs** (35 recruiter + 42 personal) named `<mode>-<Viewport-Name>-<section>-chromium-win32.png`, as of 2026-07-10.
+- Baselines: `tests/playwright-viewport.spec.ts-snapshots/` — **77 PNGs** (35 recruiter + 42 personal) named `<mode>-<Viewport-Name>-<section>-chromium-win32.png`, as of 2026-07-10. **Personal baselines are STALE as of 2026-07-11**: the parchment identity replaced violet/glass AND the sidequests board content changed (API-driven since 2026-07-11 — new node set, hub "Time · Craft · Intentionality"). Regenerate deliberately before treating personal diffs as regressions.
+- Content determinism note: SideQuests/HeroTicker now fetch from the API with fallback-seeded state. Screenshots taken with the local backend absent/empty render `fallbackSideQuests`/`fallbackTicker` — deterministic because the mirrors are verbatim copies of the live content; if a screenshot shows content mid-swap, the fetch resolved between scroll and shot (fallback ≠ mirror would be the real cause — re-sync fallback.js first).
 - Comparison: `toHaveScreenshot: { threshold: 0.2 }` — per-pixel color-distance tolerance (0–1 scale), no `maxDiffPixels` cap.
 
 The 7 viewports (`tests/playwright-viewport.spec.ts:3-11`):

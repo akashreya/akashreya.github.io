@@ -956,3 +956,29 @@ export const fallbackMentions = [
     link: "https://www.linkedin.com/in/akash-kantharaj-68526a3a"
   }
 ];
+
+// Static mirrors of /api/sidequests and /api/ticker (seeded 2026-07-11).
+// Shapes match the normalized fetch output: sidequests carry a pre-built
+// `proj` display string; ticker is plain strings in displayOrder.
+// The API's `emoji` field is ignored — the board renders no emotes.
+export const fallbackSideQuests = [
+  { id: "hotwater",   pos: "bl",     title: "Hot Water",                     body: "Not coffee. Not tea. Just hot water. 06:30 every day. This is not a phase.", proj: null },
+  { id: "time",       pos: "center", title: "Time · Craft · Intentionality", body: "Every project here exists because having fun is the point. Not shipping. Fun.", proj: null },
+  { id: "pokemon",    pos: "tl",     title: "Pokémon",                       body: "Nine regions. Every type. The Lunatone/Solrock toggle exists because thematic integrity matters.", proj: "→ poketopia" },
+  { id: "blackqueen", pos: "r",      title: "Black Queen",                   body: "Built a card-game because I loved playing it.", proj: null },
+  { id: "fiction",    pos: "tr",     title: "Fiction",                       body: "Wrote two novels. Neither is finished. Nobody asked for it.", proj: null },
+  { id: "games",      pos: "l",      title: "Playstation games",             body: "The Last of us is the best game. Don't argue with me and Ellie is love.", proj: null },
+  { id: "shreya",     pos: "br",     title: "Shreya Ghoshal",                body: "Devdas to Kalyani. I have heard it all.", proj: null }
+];
+
+export const fallbackTicker = [
+  "Everything ABC: 1300+ items. Multiple categories, Visual A to Z.",
+  "Built POKÉTOPIA solo. Nine regions. Lunatone/Solrock toggle was necessary. Thematic integrity.",
+  "Hot water. Not coffee. This is not a debate.",
+  "Three books in 2025. Did not announce them. They exist anyway.",
+  "The diff tool: 4.5 hours → 30 seconds. Planning to put it on PyPI one day. Still no README",
+  "Won the FICO hackathon. Was in Bengaluru when they demoed it. The thing ran.",
+  "Builds things. Finishes them. Has opinions about fonts.",
+  "Engineer. 15 years. Still writes code.",
+  "The point is to be so thorough that Evaluator doesn't matter."
+];

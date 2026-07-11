@@ -1,5 +1,5 @@
 import axiosInstance from './axios';
-import { fallbackSite, fallbackProjects, fallbackMentions, fallbackSiteRecruiter, fallbackSitePersonal, fallbackCaseStudies } from '../data/fallback';
+import { fallbackProjects, fallbackMentions, fallbackSiteRecruiter, fallbackSitePersonal, fallbackCaseStudies, fallbackSideQuests, fallbackTicker } from '../data/fallback';
 
 function normalizeProject(p) {
   const rawDesc = p.shortDescription ?? p.desc ?? '';
@@ -115,6 +115,38 @@ export async function fetchCaseStudy(slug, mode = 'recruiter') {
     console.warn(`GET /api/projects/${slug} failed, using fallback`);
     const fallback = fallbackCaseStudies[slug];
     return { data: fallback ?? null, notFound: !fallback };
+  }
+}
+
+function normalizeSideQuest(q) {
+  return { ...q, proj: q.projectRef ? `→ ${q.projectRef}` : null };
+}
+
+// Sidequests/ticker fields are flat per API_HANDOVER_v3 §5-6; if the backend
+// ever voices them, route through deepResolveVoice and mode-key the cache.
+export async function fetchSideQuests() {
+  try {
+    return await withCache('sidequests', TTL_LANDING, async () => {
+      const data = (await axiosInstance.get('/api/sidequests', { withCredentials: false })).data;
+      if (!Array.isArray(data) || data.length === 0) throw new Error('empty sidequests response');
+      return [...data].sort((a, b) => a.displayOrder - b.displayOrder).map(normalizeSideQuest);
+    });
+  } catch {
+    console.warn('GET /api/sidequests failed, using fallback');
+    return fallbackSideQuests;
+  }
+}
+
+export async function fetchTicker() {
+  try {
+    return await withCache('ticker', TTL_LANDING, async () => {
+      const data = (await axiosInstance.get('/api/ticker', { withCredentials: false })).data;
+      if (!Array.isArray(data) || data.length === 0) throw new Error('empty ticker response');
+      return [...data].sort((a, b) => a.displayOrder - b.displayOrder).map(t => t.text);
+    });
+  } catch {
+    console.warn('GET /api/ticker failed, using fallback');
+    return fallbackTicker;
   }
 }
 

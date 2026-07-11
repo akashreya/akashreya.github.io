@@ -52,7 +52,9 @@ TTL cache: see **portfolio-api-and-fallback**. This skill covers the mechanics o
 ## 1.1 The feature flag (read this first)
 
 `src/config.js:3` — `export const PERSONAL_MODE_ENABLED = false;` (as of 2026-07-10).
-Personal mode is **built but unlaunched and mid-redesign**. With the flag false, the site is
+Personal mode is **built and launch-ready** (parchment identity shipped, endpoints seeded, API
+wiring done — the flag's gate condition is met as of 2026-07-11; launch is the owner's call via
+the campaign skill's protocol). While the committed flag is false, the deployed site is
 recruiter-mode-only: mode init hard-forces `'recruiter'` regardless of URL param or localStorage
 (`src/theme/ThemeProvider.jsx:12-15`), and `triggerModeTransition` is a no-op
 (`ThemeProvider.jsx:44`). Do not flip the flag as part of theme/content work — that is a gated
@@ -60,33 +62,38 @@ launch step owned by **portfolio-personal-mode-campaign**.
 
 ## 1.2 themes.js structure
 
-`src/theme/themes.js` exports `themes` (lines 1-99) and `applyTheme` (lines 101-114).
+`src/theme/themes.js` exports `themes` (lines 1-104) and `applyTheme` (lines 106-120).
 
 ```
 themes
 ├── recruiter          ("Bloomberg terminal": flat, warm, serif)
-│   ├── fonts          display: Instrument Serif · body: Manrope · mono: IBM Plex Mono  (4-8)
-│   ├── light          accent #c8341e / #e14b3a  (9-28)
-│   └── dark           accent #e14b3a / #f56f54  (29-48)
-└── personal           (violet glass — CANDIDATE identity, owner wants it redesigned)
-    ├── fonts          display: "Baloo 2"  (54)
-    ├── light          accent #6e45ff / #9b8aff  (58-77)
-    └── dark           accent #9b8aff / #c2b3ff  (78-97)
+│   ├── fonts          display: Instrument Serif · body: Manrope · mono: IBM Plex Mono · script: Instrument Serif  (4-9)
+│   ├── light          accent #c8341e / #e14b3a  (10-29)
+│   └── dark           accent #e14b3a / #f56f54  (30-49)
+└── personal           (PARCHMENT — shipped 44d54c4; violet-glass/Baloo 2 is gone)
+    ├── fonts          display: Fondamento · body: Alegreya · script: Sacramento  (54-59)
+    ├── light          "day parchment": bg #ccb891, ink #33240f, accent #38591f leaf-green  (63-82)
+    └── dark           "wandlight": bg #1b1408, ink #ecdcb2, accent #8fb96a, amber candle glows  (83-102)
 ```
 
 Each tone map has 18 tokens: `bg bg2 surf surf2 line line2 ink ink2 ink3 accent accent2
 surf-blur surf-radius surf-shadow surf-border pill-shadow glow-a glow-b`. The recruiter/personal
-character difference is carried in the tokens themselves: recruiter has `surf-blur: 0px`,
-`surf-radius: 4px`, transparent glows (flat editorial look); personal has `surf-blur: 16px`,
-`surf-radius: 18px`, radial-gradient glows (glassmorphism).
+character difference is carried in the tokens themselves: recruiter has `surf-radius: 4px`,
+transparent glows (flat editorial look); personal has `surf-radius: 10px` and tea-stain
+radial-gradient glows (illustrated manuscript). Both modes now run `surf-blur: 0px` — the
+glassmorphism blur died with violet/glass. Personal-light's ground/lines/ink2 are sampled from
+the Marauder's Map film prop (comment at `themes.js:61-62`); seal red `#5a0606` is deliberately
+UNUSED — reserved for one rare wax-seal detail on owner request.
 
 ## 1.3 How tokens land on the page
 
-`applyTheme(modeName, tone)` (`themes.js:101-114`):
+`applyTheme(modeName, tone)` (`themes.js:106-120`):
 
 1. For every token key `k`, sets inline `--{k}` on `document.documentElement` — so `bg` becomes
    `--bg`, `surf-blur` becomes `--surf-blur`.
-2. Sets `--font-display`, `--font-body`, `--font-mono` from the mode's `fonts`.
+2. Sets `--font-display`, `--font-body`, `--font-mono`, `--font-script` from the mode's `fonts`
+   (`script` added 2026-07-11: Sacramento for personal card headings, Instrument Serif as the
+   recruiter no-op).
 3. Sets `root.dataset.mode` and `root.dataset.tone` → `<html data-mode="..." data-tone="...">`.
 
 CSS consumes tokens as `var(--bg)` etc., and mode-specific *rules* key off the data attribute,
@@ -100,7 +107,9 @@ Grep `data-mode` in `src/styles/` to find every mode-forked rule.
 `index.html:16-48` inlines a *duplicate copy* of the recruiter-dark tokens as a `:root` style
 block so the page paints correctly before React mounts. **If you change a recruiter-dark token in
 themes.js, change it in index.html too** — otherwise the page flashes the old value on load.
-All four font families (including Baloo 2) load from one Google Fonts URL at `index.html:12`.
+All font families load from one Google Fonts URL at `index.html:12` — Instrument Serif, Manrope,
+IBM Plex Mono, Fondamento, Alegreya, Sacramento (Baloo 2 removed 2026-07-11). Fondamento has
+NO weight above 400 — don't set bolder weights on display text in personal mode.
 
 ## 1.4 State, persistence, URL params — ThemeProvider.jsx
 
@@ -164,20 +173,20 @@ Three homes. Picking the wrong one is the most common content mistake.
 | Project grid cards (title, desc, tags, metrics) | Backend `GET /api/projects` | Admin UI, then mirror `fallbackProjects` |
 | Case-study prose (overview, problem, architecture, decisions, process, outcome) | Backend `GET /api/projects/:slug` | Admin UI, then mirror `fallbackCaseStudies` |
 | In-the-wild mention cards | Backend `GET /api/mentions` | Admin UI, then mirror `fallbackMentions` |
+| SideQuests board nodes | Backend `GET /api/sidequests` (since 2026-07-11) | Admin UI, then mirror `fallbackSideQuests` |
+| Hero ticker lines | Backend `GET /api/ticker` (since 2026-07-11) | Admin UI, then mirror `fallbackTicker` |
 | Everything in the table below | **Hardcoded JSX** | Edit the component, ship through deploy gate |
 
 Backend content is entered via the **admin UI at `https://projects.akashreya.space`**
 (owner-confirmed 2026-07-10 — that host is the content-entry UI, **NOT** an API endpoint; the
 API is `https://projectsapi.akashreya.space`). Backend source: `E:\Work\Code\GitHub\projectservice`
-— internals out of scope here. Endpoint catalog, backend topology, and which endpoints are live
-vs built-but-unseeded: **portfolio-api-and-fallback**.
+— internals out of scope here. Endpoint catalog, live shapes, and backend topology:
+**portfolio-api-and-fallback** (all five endpoints live and seeded as of 2026-07-11).
 
 ## 2.1 Hardcoded-copy inventory (changing these requires a code deploy)
 
 | Copy | File:line | Mode it shows in |
 |---|---|---|
-| Hero ticker, 10 lines (`TICKER_LINES`) | `src/sections/HeroTicker.jsx:1-12` | personal |
-| SideQuests board, 7 nodes (`NODES`) | `src/sections/SideQuests.jsx:13-21` | personal |
 | Faux console line `GET /api/v1/me · personal · 12ms` | `src/components/ConsoleLine.jsx:8` | personal |
 | Hero map-pin label `Bengaluru · IST` | `src/sections/Hero.jsx:79` | recruiter |
 | Enterprise collapsed strip `13y · enterprise, ...` + `resume.pdf →` | `src/sections/Enterprise.jsx:11-12` | personal |
@@ -188,11 +197,10 @@ vs built-but-unseeded: **portfolio-api-and-fallback**.
 | Mode-transition beat texts | `src/theme/ThemeProvider.jsx:52-54` | transition overlay |
 | ThemeHint label | `src/components/ThemeHint.jsx:16-19` | both |
 
-Ticker and SideQuests copy is hardcoded **even though** `/api/ticker` and `/api/sidequests` exist
-on the backend (built but unseeded as of 2026-07-10, and the frontend has no fetch for them —
-`src/api/client.js` calls only site/projects/mentions). Seed mirrors of the hardcoded arrays live
-at `Design/seed_data/portfolio_v3_seed_data/json/`. Wiring + seeding is campaign work:
-**portfolio-personal-mode-campaign**.
+Ticker and SideQuests copy moved OUT of this inventory on 2026-07-11: both are API-driven
+(`fetchSideQuests`/`fetchTicker`, seeded on prod, mirrored in `fallbackSideQuests`/`fallbackTicker`).
+Note: the `Design/seed_data` JSONs still carry the OLD hardcoded copy — relics, not truth.
+Content history + current live shapes: **portfolio-api-and-fallback**.
 
 ## 2.2 fallback.js — the offline mirror
 
@@ -207,6 +215,8 @@ API down. Exports (verified line numbers):
 | `fallbackSitePersonal` | 682 | personal-voice site copy — **`nav`/`enterprise` gap fixed 2026-07-11** (now references `fallbackSite.nav`/`fallbackSite.enterprise`, not duplicated) |
 | `fallbackProjects` | 738 | 8 project cards |
 | `fallbackMentions` | 909 | 4 mention cards |
+| `fallbackSideQuests` | ~962 | 7 board nodes, verbatim mirror of the live seeded API (2026-07-11) |
+| `fallbackTicker` | ~972 | 9 ticker strings, verbatim mirror of live (2026-07-11) |
 
 All fallback strings are **flat** (never voiced wrappers) — voice is expressed by having two
 separate site objects. Which fallback is used when, the v2/v3 shape detection, and the sync
@@ -247,7 +257,7 @@ Quick check — which component consumes a given API field: `PortfolioPage.jsx:3
 | Path | What it is |
 |---|---|
 | `Design/API_HANDOVER_v3.md` | **Current API spec** (dated 2026-05-29). Voiced fields, sidequests/ticker DDL, SQLite types, backward-compat rule. Explicitly supersedes `API_HANDOVER.md`. |
-| `Design/seed_data/portfolio_v3_seed_data/` | **Current seed material** for the unseeded endpoints + voiced fields. `json/` (site.json, side_quests.json, ticker.json — the latter two mirror the hardcoded component arrays), `sql/01-04`, README with apply order (`03 → 04 → 02` via `sqlite3 portfolio.db < sql/...`; site.json via admin seed endpoint or `readfile()`). |
+| `Design/seed_data/portfolio_v3_seed_data/` | **Relic as of 2026-07-11** for sidequests/ticker: `json/side_quests.json` + `ticker.json` mirror the OLD hardcoded arrays, NOT what the owner actually seeded (live content differs — new nodes, `time` hub, 9 lines). The live API is the source of truth. `sql/01-04` + README remain useful only as local-backend bootstrap scaffolding. |
 
 Caveat: the v3 seed `site.json` uses the top-level `{recruiter, personal}` split, while
 API_HANDOVER_v3.md's `/api/site` example shows per-field wrappers. The frontend handles both
@@ -278,9 +288,8 @@ re-verification for each (PowerShell; run from repo root):
 | Token keys and values | `Get-Content src/theme/themes.js` |
 | FOUC-guard duplicate tokens | `Select-String -Path index.html -Pattern '--bg|--accent'` |
 | localStorage keys | `Select-String -Path src/theme/ThemeProvider.jsx -Pattern 'localStorage'` |
-| Hardcoded ticker/sidequests copy | `Get-Content src/sections/HeroTicker.jsx -TotalCount 12; Get-Content src/sections/SideQuests.jsx -TotalCount 21` |
 | fallback.js export lines | `Select-String -Path src/data/fallback.js -Pattern '^export const'` |
-| Whether frontend now fetches sidequests/ticker | `Select-String -Path src/api/client.js -Pattern 'sidequests|ticker'` (no hits = still hardcoded) |
+| Sidequests/ticker still API-driven (since 2026-07-11) | `Select-String -Path src/api/client.js -Pattern 'fetchSideQuests|fetchTicker'` (expect both; no hits = regressed to hardcoded) |
 | Mode-forked CSS rules | `Select-String -Path src/styles/*.css -Pattern 'data-mode'` |
 | Design/ contents | `Get-ChildItem Design; Get-ChildItem Design/seed_data/portfolio_v3_seed_data -Recurse` |
 | Admin UI vs API hosts | Owner-confirmed 2026-07-10; not verifiable from this repo. Backend source: `E:\Work\Code\GitHub\projectservice`. |

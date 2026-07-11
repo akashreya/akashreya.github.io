@@ -1,35 +1,39 @@
 ---
 name: portfolio-personal-mode-campaign
 description: >
-  Plan-of-record for launching PERSONAL MODE on akashreya.space — currently UNLAUNCHED
-  (PERSONAL_MODE_ENABLED=false) and mid-redesign. Load this when the task mentions: personal mode,
-  the personal-mode redesign, flipping PERSONAL_MODE_ENABLED, the violet/glass theme, Baloo 2,
-  "harry potter + pokemon + videogames + shreya ghoshal", embeds / per-project character /
-  PokeTypeAtmosphere / ServiceInspector / LetterDrop, sidequests or ticker seeding, the admin UI
-  at projects.akashreya.space, the obsessions board, HeroTicker, or "when can we launch personal
-  mode". Also load before ANY change to personal-mode visuals, before seeding /api/sidequests or
-  /api/ticker, and before touching src/config.js. Do NOT load for recruiter-mode work, general
-  debugging, or deploy mechanics (see siblings listed inside).
+  Plan-of-record for launching PERSONAL MODE on akashreya.space — parchment identity built,
+  endpoints seeded, API wiring done; the flag's gate condition is MET and launch awaits the
+  owner's word + deploy gate. Load this when the task mentions: personal mode, the
+  parchment/marauder's-map identity, Footprints, Chikorita, flipping PERSONAL_MODE_ENABLED,
+  the old violet/glass theme or Baloo 2, "harry potter + pokemon + videogames + shreya ghoshal",
+  embeds / per-project character / PokeTypeAtmosphere / ServiceInspector / LetterDrop, sidequests
+  or ticker content, the admin UI at projects.akashreya.space, the obsessions board, HeroTicker,
+  or "when can we launch personal mode". Also load before ANY change to personal-mode visuals,
+  before editing sidequests/ticker content, and before touching src/config.js. Do NOT load for
+  recruiter-mode work, general debugging, or deploy mechanics (see siblings listed inside).
 ---
 
 # Personal Mode Campaign
 
-The decision-gated runbook for redesigning, seeding, and launching personal mode. The owner has
-deferred this work; this skill is the plan-of-record for whenever it restarts. Status as of
-2026-07-10:
+The runbook for redesigning, seeding, and launching personal mode. **The flag's written gate —
+"flip to true when /api/sidequests + /api/ticker are live and seeded" (`src/config.js:1-2`) —
+is MET as of 2026-07-11.** Launch is now an owner decision plus the deploy gate, not blocked
+work. Status as of 2026-07-11:
 
-| Item | State (2026-07-10) | Where |
+| Item | State (2026-07-11) | Where |
 |---|---|---|
-| `PERSONAL_MODE_ENABLED` | `false` | `src/config.js:3` |
-| Personal theme | Built (violet/glass, Baloo 2) — owner rejected the identity | `src/theme/themes.js:51-98` |
-| `/api/sidequests`, `/api/ticker` | Live on prod, return `200 []` — BUILT BUT UNSEEDED (verified by GET on 2026-07-10) | backend |
-| Frontend fetch of those endpoints | DOES NOT EXIST — SideQuests + HeroTicker content is hardcoded in the components | `src/sections/SideQuests.jsx:13-21`, `src/sections/HeroTicker.jsx:1-12` |
-| Per-project embeds | 2 exist (poketopia, fico-cod-rto); owner verdict: right direction, "too less" | `src/pages/CaseStudyPage.jsx:315-332` |
-| Visual test coverage | Personal half of the suite exists (7 viewports × 6 shots); baselines still only generatable with the flag flipped locally, but as of 2026-07-11 the spec `test.skip`s personal cases when the flag is off instead of failing them | `tests/playwright-viewport.spec.ts:13` |
+| `PERSONAL_MODE_ENABLED` | `false` in git, `true` in the owner's working tree. **Gate condition met** — commit the flip via the launch protocol (e) on the owner's word | `src/config.js:3` |
+| Personal theme | **Parchment identity SHIPPED** (`44d54c4`): Marauder's-Map prop palette, Fondamento display / Alegreya body / Sacramento script. Violet/glass + Baloo 2 are GONE. | `src/theme/themes.js` personal block |
+| Ambient identity layer | Footprints (cursor ink trail) + Chikorita (CDN-frame buddy) shipped in `44d54c4`, both personal-mode-gated | `src/components/Footprints.jsx`, `Chikorita.jsx` |
+| `/api/sidequests`, `/api/ticker` | **SEEDED on prod 2026-07-11** (7 nodes / 9 lines, content differs from the old hardcoded arrays). Local dev backend may still be `200 []`. | backend |
+| Frontend fetch of those endpoints | **BUILT 2026-07-11** — `fetchSideQuests`/`fetchTicker` with `fallbackSideQuests`/`fallbackTicker` mirrors; hardcoded arrays deleted; empty/down/recruiter states verified | `src/api/client.js`, `src/sections/SideQuests.jsx`, `HeroTicker.jsx` |
+| Per-project embeds | 2 exist (poketopia, fico-cod-rto); owner verdict: right direction, "too less" — the still-open density work | `src/pages/CaseStudyPage.jsx:315-332` |
+| Visual test coverage | Personal half of the suite exists (7 viewports); spec `test.skip`s personal cases when the flag is off. Personal baselines are STALE vs the parchment redesign + new board content — deliberate regen required before they gate anything | `tests/playwright-viewport.spec.ts:13` |
 
 Launch chain (owner-confirmed order): **redesign converges → seed sidequests/ticker via admin UI
-→ flip the flag → deploy gate → push**. Each phase below is a gate; do not start a later phase
-before the earlier gate is signed off.
+→ flip the flag → deploy gate → push**. Identity and seeding are done — the chain is at "flip
+the flag". Embed density (gate b) remains open DESIGN work but is NOT a launch blocker; it can
+land post-launch.
 
 ## Terminology (30 seconds — full treatment in portfolio-architecture-contract)
 
@@ -55,40 +59,37 @@ CLAUDE.md still describes v2 ("crimson"/"glass" themes) — it is stale. `src/` 
 
 ---
 
-## (a) DESIGN BRIEF — first gate, blocks everything
+## (a) DESIGN BRIEF — RESOLVED for identity; density still open
 
-Two named problems, both owner-stated:
+Owner's brief, verbatim: **"harry potter + pokemon + videogames + shreya ghoshal"**.
 
-**Problem 1 — IDENTITY.** The current personal theme is violet/glass: accents `#6e45ff`/`#9b8aff`
-(light) and `#9b8aff`/`#c2b3ff` (dark), Baloo 2 display face, 16px backdrop blur, 18px radius,
-radial-gradient glows (`src/theme/themes.js:54, 58-97`). The owner's verdict: it does not express
-his personality. His brief, verbatim:
+**Problem 1 — IDENTITY: RESOLVED** (approved piece-by-piece 2026-07-10, committed in `44d54c4`).
+The violet/glass theme was replaced by the **illustrated-manuscript parchment register**:
 
-> "harry potter + pokemon + videogames + shreya ghoshal"
+- **Palette**: Marauder's-Map film-prop parchment (light tone: ground `#ccb891`, mid `#a59172`,
+  ink `#33240f`, leaf-green accent `#38591f`); dark tone is "wandlight" (deep amber-brown,
+  candle-glow gradients). Seal red `#5a0606` is deliberately UNUSED — reserved for one rare
+  wax-seal detail, on owner request only.
+- **Type**: Fondamento display (LOTR vibes, 400-only), Alegreya body, **Sacramento** as a new
+  `script` token (`--font-script`, card headings — "Shreya's feminine"). Baloo 2 removed.
+- **Ambient motion**: Footprints cursor trail (marauder's-map ink prints, idle wipe =
+  "mischief managed", never captioned) and Chikorita buddy (imperative state machine, frames
+  from CloudFront via `VITE_CDN_URL`, degrades to absent without the env var).
+- **Doctrine**: identity enacted, not announced; ambient layers quiet; every decorative feature
+  loses gracefully (absent, never broken).
 
-**Problem 2 — DENSITY.** Per-project embedded character (PokeTypeAtmosphere, ServiceInspector,
-LetterDrop) is the right direction but under-committed — his words: "too less". The code agrees:
-9 type-pair palettes are defined in `PokeTypeAtmosphere.jsx:4-14` but only 1 of 8 case studies
-(`poketopia`) consumes them (`CaseStudyPage.jsx:23-32`), and only 1 (`fico-cod-rto`) has an
-inspector. **Amplify, don't replace.**
+**NOT approved** (idea-status only — do not build without a fresh owner yes): GBA-style dialogue
+boxes, continue screen, dex, trainer card, or any other element from the old concept board.
 
-### The gate
+**Problem 2 — DENSITY: OPEN.** Per-project embedded character (PokeTypeAtmosphere,
+ServiceInspector, LetterDrop) is the right direction but under-committed — owner's words: "too
+less". 9 type-pair palettes defined in `PokeTypeAtmosphere.jsx:4-14` but only 1 of 8 case studies
+(`poketopia`) consumes them, and only 1 (`fico-cod-rto`) has an inspector. **Amplify, don't
+replace.** This is the remaining design work before convergence.
 
-Before ANY implementation, translate the brief into **3-5 written, named design commitments**,
-covering at minimum:
-
-1. **Palette direction** — what replaces/reworks violet-glass, per tone
-2. **Type voice** — keep or replace Baloo 2, and why
-3. **Motion character** — what movement says "him" (current: iris/curtain transition, letter-drop, ticker scroll, blob drift)
-4. **Texture / motif vocabulary** — the recurring visual language (the four brief ingredients must be locatable in it)
-
-Each commitment gets a name and one sentence. The **owner signs off on the written list** before
-a line of CSS changes.
-
-**Why this gate exists:** iterating on an undecidable brief is the established failure mode of
-this workstream — the current violet/glass theme was fully built and then rejected on identity
-grounds. "Shows personality" is decided at this gate, once, in writing. It is never re-judged by
-eye during implementation; implementation is judged only against the signed commitments.
+**Process rule (owner-stated, learned the hard way):** when the owner shows a reference (a file,
+a screenshot, a link), he wants ASSESSMENT AND FEEDBACK FIRST — not implementation. Never start
+building from a reference without giving the verdict and getting a go.
 
 ---
 
@@ -122,8 +123,10 @@ scrolls to it. CSS: `src/styles/cs-inspector.css`.
 ### Ambient (non-per-project) personal character — the "louder" candidates
 
 - `LetterDrop` (`src/components/LetterDrop.jsx`) — per-char staggered drop of the hero name, personal branch of `Hero.jsx:29-31`; animation CSS scoped under `[data-mode="personal"]` in `portfolio.css`
-- `HeroTicker` — 10 hardcoded lines, doubled for seamless loop (`HeroTicker.jsx:14-15`)
-- `SideQuests` — 7 hardcoded corkboard nodes, `null` unless personal mode (`SideQuests.jsx:29`)
+- `HeroTicker` — API-driven since 2026-07-11 (`fetchTicker`, `fallbackTicker` seed state), doubled for seamless loop
+- `SideQuests` — API-driven since 2026-07-11 (`fetchSideQuests`, mode-gated fetch, connector hub derived from `pos === 'center'`), `null` unless personal mode
+- `Footprints` — marauder's-map ink trail behind the cursor; page-coordinate layer, gated on personal + fine pointer + no reduced-motion
+- `Chikorita` — buddy sprite above the navpill; frames from `${VITE_CDN_URL}/site/chikorita/`; renders null without the env var, hides itself on frame load error
 - `AmbientBlobs`, `ConsoleLine` — personal-only, PortfolioPage
 - InTheWildPage staggers `.mention` cards with `.is-dropped` at 70ms intervals in personal mode (`InTheWildPage.jsx:71-80`) — unrelated to the `LetterDrop` component despite the name
 
@@ -163,9 +166,11 @@ Expected observations:
 
 | Check | Expected |
 |---|---|
-| Page loads in personal mode | Violet/glass tokens (or your redesign), Baloo 2 headings |
+| Page loads in personal mode | Parchment ground (`#ccb891` light / wandlight dark), Fondamento headings, Sacramento card titles |
 | Press `M` (outside inputs) | Iris transition overlay, "> entering personal mode · akash@kelvin" beat text, mode flips |
 | Press `T` | Tone toggles light/dark |
+| Move the cursor | Ink footprints trail and fade; stopping ~2.5s wipes the remainder together |
+| Chikorita | Buddy idles above the navpill band, strolls occasionally — REQUIRES `VITE_CDN_URL` (`.env.local` for dev; CI gets it from the repo secret via `deploy.yml`); without it she is absent by design |
 | Scroll the portfolio page | SideQuests corkboard renders after Projects; HeroTicker scrolls in hero right column; ambient blobs; Enterprise collapsed to one-line strip |
 
 If you see X instead → branch:
@@ -177,22 +182,22 @@ If you see X instead → branch:
 | Mode-toggle button on a case-study or in-the-wild page does nothing | Those pages render the button UNGATED (`CaseStudyPage.jsx:300-307`, `InTheWildPage.jsx:135-142`) but `triggerModeTransition` no-ops when the flag is off (`ThemeProvider.jsx:44`) | Expected with flag off; works with flag on |
 | Site loads recruiter despite flag on | Stale `localStorage['akashreya.mode']` is only consulted when flag is on, but an explicit `?mode=` always wins — check for typos in the param | — |
 
-### Gate C2 — empty vs seeded data states
+### Gate C2 — empty vs seeded data states — PASSED 2026-07-11
 
-As of 2026-07-10 the frontend does **not** fetch `/api/sidequests` or `/api/ticker` — content is
-hardcoded, so today there is no empty-state risk from those endpoints. **If API wiring is built**
-(a separate, owner-approved scope), both states must be exercised before launch:
+The API wiring is built and all four states were exercised on 2026-07-11:
 
-```powershell
-# Seeded state: run the backend locally (repo: E:\Work\Code\GitHub\projectservice — internals out
-# of scope here), seed it from Design/seed_data/portfolio_v3_seed_data/, and point the frontend at it.
-# .env.local already sets VITE_API_URL=http://localhost:8080.
-npm run dev
-```
+- **Seeded**: board shows the 7 live nodes (hub = "Time · Craft · Intentionality" at center,
+  id `time`), ticker 9 lines — matching the LIVE API, not the stale seed JSONs. Verified via a
+  local stub serving captured prod payloads (dev cannot hit prod directly — the prod API 403s
+  localhost origins; see **portfolio-api-and-fallback** CORS section).
+- **Empty** (backend up, tables empty — the local dev backend's state): fetchers treat `[]` as
+  failure → `fallbackSideQuests`/`fallbackTicker` render; never a blank board. Verified.
+- **API down**: whole site renders from fallbacks. Verified. (`fallbackSitePersonal`'s missing
+  `nav` was fixed 2026-07-11 — it now references `fallbackSite.nav`/`fallbackSite.enterprise`.)
+- **Recruiter mode**: zero sidequests/ticker network calls (SideQuests' effect is mode-gated;
+  HeroTicker only mounts in the personal Hero branch). Verified.
 
-- **Seeded**: board shows 7 nodes, ticker 10 lines, matching `json/side_quests.json` / `json/ticker.json`.
-- **Empty** (backend up, tables empty — this is prod's current truth: `200 []`): components must fall back (hardcoded arrays or `fallback.js` data), never render a blank board. If they blank → the wiring lacks an empty-array guard; fix before proceeding.
-- **API down** (kill the backend): whole site must still render from fallbacks. **FIXED 2026-07-11:** `fallbackSitePersonal` used to have no `nav` key, so personal mode offline yielded an empty NavPill; it now references `fallbackSite.nav`/`fallbackSite.enterprise` — details in **portfolio-api-and-fallback**.
+Re-run this gate only if the fetchers, fallback mirrors, or backend shapes change.
 
 **FIXED 2026-07-11** (was: "known voice gap to decide before launch"): `CaseStudyPage` used to fetch with `[slug]`-only effect deps, so toggling mode ON a case-study page didn't re-resolve voiced copy until navigation. Deps are now `[slug, mode]` (`CaseStudyPage.jsx:99`) — this gate is satisfied, no owner decision needed here anymore.
 
@@ -214,49 +219,43 @@ legitimate-vs-masking updates: **portfolio-visual-testing**.
 
 ---
 
-## (d) SEEDING PROTOCOL
+## (d) SEEDING PROTOCOL — DONE 2026-07-11 (prod)
 
-Seed `/api/sidequests` and `/api/ticker` **via the admin UI at https://projects.akashreya.space**
-(that URL is the content-entry UI, NOT an API endpoint — the API is
-`https://projectsapi.akashreya.space`).
+The owner seeded `/api/sidequests` and `/api/ticker` via the admin UI at
+https://projects.akashreya.space (the content-entry UI, NOT an API endpoint — the API is
+`https://projectsapi.akashreya.space`). Live content as seeded:
 
-Source material (repo-verified paths):
+- **Sidequests** — 7 nodes: hotwater/bl, time/center (the hub — id is `time`, not the old
+  `craft`), pokemon/tl (only node with a `projectRef`: `"poketopia"`), blackqueen/r, fiction/tr,
+  games/l, shreya/br. The `emoji` field is ignored by the frontend (owner 2026-07-11: "emotes
+  look childish" — render span + CSS removed; a future redesign replaces, not restores, them).
+- **Ticker** — 9 lines (displayOrder gap at 6; frontend sorts). Owner-edited copy, e.g.
+  "having fun is the point. Not shipping. Fun." and "Engineer. 15 years. Still writes code."
 
-| File | Feeds | Content |
-|---|---|---|
-| `Design/seed_data/portfolio_v3_seed_data/json/side_quests.json` | `/api/sidequests` | 7 nodes — mirrors the array hardcoded in `SideQuests.jsx:13-21` |
-| `Design/seed_data/portfolio_v3_seed_data/json/ticker.json` | `/api/ticker` | 10 lines — mirrors `HeroTicker.jsx:1-12` |
-| `Design/seed_data/portfolio_v3_seed_data/sql/03_side_quests_v3.sql`, `04_ticker_v3.sql` | direct SQLite alternative | idempotent CREATE + INSERT (see the folder's README) |
+**The `Design/seed_data` JSONs/SQL are now RELICS** — they mirror the pre-2026-07-11 hardcoded
+arrays (cards/ai/difftool nodes, `craft` hub, 10 ticker lines), NOT what was seeded. The live
+API is the source of truth; `fallback.js` mirrors it. Don't re-seed from those files.
 
-Spec for shapes: `Design/API_HANDOVER_v3.md` §5 (sidequests) and §6 (ticker). Ticker rule from the
-spec: text is "Akash's voice — do not sanitise or paraphrase."
+Content edits go through the admin UI, then re-mirror `fallbackSideQuests`/`fallbackTicker` in
+the same change set (sync discipline: **portfolio-api-and-fallback**). Ticker rule from the
+spec still stands: text is "Akash's voice — do not sanitise or paraphrase."
 
-### Verify after seeding (PowerShell — note `;` not `&&`)
+### Verify current live content (PowerShell — note `;` not `&&`)
 
 ```powershell
 Invoke-RestMethod https://projectsapi.akashreya.space/api/sidequests | ConvertTo-Json -Depth 4
 Invoke-RestMethod https://projectsapi.akashreya.space/api/ticker | ConvertTo-Json -Depth 4
 ```
 
-Expected skeletons (per API_HANDOVER_v3.md):
-
-```jsonc
-// /api/sidequests — 7 objects
-[ { "id": "pokemon", "pos": "tl", "emoji": "🎮", "title": "Pokémon",
-    "body": "...", "projectRef": "poketopia", "displayOrder": 1 }, ... ]
-// pos must be one of: tl, tr, r, br, bl, l, center
-
-// /api/ticker — 10 objects
-[ { "text": "...", "projectRef": "fico-cod-rto", "displayOrder": 4 }, ... ]
-```
-
-If you get `[]` → still unseeded (that IS the response as of 2026-07-10, HTTP 200). If you get a
-count mismatch or missing fields → fix in the admin UI, re-verify; do not proceed to launch.
+`[]` from PROD would mean the seeding regressed — investigate backend-side. (`[]` from the
+LOCAL backend is normal; it was never seeded.) A `pos` value outside
+tl/tr/r/br/bl/l/center, or two nodes sharing a `pos`, renders wrong (missing/stacked nodes) —
+fix in the admin UI.
 
 ### Fenced-off wrong paths
 
-- **DO NOT flip `PERSONAL_MODE_ENABLED` in a commit before seeding is done and verified.** The launch chain is owner-defined (converge → seed → flip); push-to-main is a live deploy, and the config comment (`src/config.js:1-2`) explicitly conditions the flag on seeded endpoints.
-- **DO NOT edit `src/data/fallback.js` as a substitute for seeding.** Fallback is the offline mirror, not the source of truth; content enters through the admin UI. Fallback sync discipline: **portfolio-api-and-fallback**.
+- **DO NOT flip `PERSONAL_MODE_ENABLED` in a commit outside the launch protocol.** Push-to-main is a live deploy.
+- **DO NOT edit `src/data/fallback.js` as a substitute for the admin UI.** Fallback is the offline mirror, not the source of truth. Sync discipline: **portfolio-api-and-fallback**.
 
 ---
 
@@ -264,11 +263,14 @@ count mismatch or missing fields → fix in the admin UI, re-verify; do not proc
 
 Preconditions — all must be true, in writing:
 
-- [ ] Design commitments signed (gate a)
-- [ ] Approved embeds built; existing embeds amplified per approved proposals (gate b)
-- [ ] Gates C1-C3 passed; personal visual baselines regenerated and green
-- [ ] Sidequests + ticker seeded and verified live (gate d)
-- [ ] Decision recorded: launch on hardcoded SideQuests/HeroTicker content (seed JSONs mirror it, so pixels are identical) OR API wiring built and both data states tested (gate C2)
+- [x] Identity design landed (gate a — parchment, `44d54c4`)
+- [x] Sidequests + ticker seeded and verified live (gate d, 2026-07-11)
+- [x] API wiring built and all data states tested (gate C2, 2026-07-11)
+- [x] Flag's written gate condition met (seeded endpoints — `src/config.js:1-2`)
+- [x] **`VITE_CDN_URL` in the production build** — owner set the repo secret (2026-07-11) and `deploy.yml` now passes it to the build env (`VITE_CDN_URL: ${{ secrets.VITE_CDN_URL }}`, deliberately no fallback: unset secret → Chikorita degrades to absent, never broken)
+- [ ] Deploy gate at launch time: C1 manual check + visual suite (C3) with baselines deliberately regenerated against the parchment identity
+
+(Embed density — gate b — is open design work, NOT a launch blocker.)
 
 Then:
 
@@ -293,7 +295,8 @@ and `localStorage['akashreya.mode']` start being honored.
 - [ ] Hard reload `/` — recruiter mode unchanged (default is still recruiter)
 - [ ] `/?mode=personal` loads personal mode
 - [ ] `M` toggles mode with iris/curtain transition; `T` toggles tone
-- [ ] SideQuests board (7 nodes), HeroTicker, blobs, collapsed Enterprise all render
+- [ ] SideQuests board (7 API nodes, hub "Time · Craft · Intentionality"), HeroTicker (9 API lines), blobs, collapsed Enterprise all render
+- [ ] Footprints trail follows the cursor and wipes on idle; Chikorita appears (if absent, check `VITE_CDN_URL` in the build env and the CloudFront frames at `site/chikorita/`)
 - [ ] `/work/poketopia` in personal mode — type-pair atmosphere + caption badge
 - [ ] `/work/fico-cod-rto` — inspector hint button; `J` opens the drawer
 - [ ] `/in-the-wild` in personal mode — cards stagger in with the drop animation
@@ -308,16 +311,16 @@ gh-pages state is not recoverable from the branch — rollback is always roll-fo
 
 ## Provenance and maintenance
 
-All claims verified against the working tree and live API on **2026-07-10**. Re-verify before
+All claims verified against the working tree and live API on **2026-07-11**. Re-verify before
 trusting:
 
 | Volatile fact | Re-verification (PowerShell) |
 |---|---|
-| Flag state | `Get-Content E:\Work\Code\GitHub\akashreya-portfolio\src\config.js` |
-| Endpoints still unseeded | `Invoke-RestMethod https://projectsapi.akashreya.space/api/sidequests; Invoke-RestMethod https://projectsapi.akashreya.space/api/ticker` (expect `[]` until seeded) |
-| Personal theme still violet/glass | Grep `6e45ff` in `src/theme/themes.js` |
-| SideQuests/HeroTicker still hardcoded | Grep `TICKER_LINES` in `src/sections/HeroTicker.jsx` and `const NODES` in `src/sections/SideQuests.jsx`; Grep `sidequests\|ticker` in `src/api/client.js` (expect no hits) |
+| Flag state (committed vs local) | `Get-Content src\config.js; git -C . diff src/config.js` |
+| Endpoints still seeded | `Invoke-RestMethod https://projectsapi.akashreya.space/api/sidequests; Invoke-RestMethod https://projectsapi.akashreya.space/api/ticker` (expect 7 and 9 items) |
+| Personal theme still parchment | Grep `Fondamento` and `ccb891` in `src/theme/themes.js` (violet `6e45ff` should be GONE) |
+| SideQuests/HeroTicker still API-driven | Grep `fetchSideQuests\|fetchTicker` in `src/api/client.js` and `src/sections/` (expect hits in both) |
 | Embed mounts unchanged | Grep `slug === ` in `src/pages/CaseStudyPage.jsx` (expect `fico-cod-rto`, `poketopia`) |
 | Suite still tests both modes | Grep `const modes` in `tests/playwright-viewport.spec.ts` |
 | Flag-off keymap (M=tone, T=dead) | Read `src/theme/ThemeProvider.jsx` lines 68-85 |
-| CI fallback URL misconfig | Read `.github/workflows/deploy.yml` line 36 |
+| CI passes VITE_CDN_URL (wired 2026-07-11) | `Select-String -Path .github\workflows\deploy.yml -Pattern 'VITE_CDN_URL'` (expect one hit in the Build env; secret value lives in GitHub repo settings) |

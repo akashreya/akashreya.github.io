@@ -1,12 +1,13 @@
 ---
 name: portfolio-api-and-fallback
 description: >
-  The API integration layer of akashreya-portfolio: endpoint catalog (which are live-and-seeded
-  vs built-but-unseeded), pickVoice/deepResolveVoice semantics, v2-vs-v3 site shape detection,
-  TTL cache behavior, fallback.js sync discipline, and backend topology (projectsapi vs admin UI).
-  Load when: touching src/api/client.js or src/api/axios.js; adding/changing an API call; content
-  looks wrong/stale/mixed-voice; deciding whether to edit fallback.js or seed the backend;
-  "[object Object]" or React error #31 renders; wiring /api/sidequests or /api/ticker; verifying
+  The API integration layer of akashreya-portfolio: endpoint catalog (all five live and seeded
+  as of 2026-07-11, with per-endpoint shapes and quirks), pickVoice/deepResolveVoice semantics,
+  v2-vs-v3 site shape detection, TTL cache behavior, fallback.js sync discipline, and backend
+  topology (projectsapi vs admin UI; prod CORS 403s localhost). Load when: touching
+  src/api/client.js or src/api/axios.js; adding/changing an API call; content looks
+  wrong/stale/mixed-voice; deciding whether to edit fallback.js or seed the backend;
+  "[object Object]" or React error #31 renders; sidequests or ticker data questions; verifying
   what the live backend actually serves; setting VITE_API_URL; CORS questions. Keywords: voiced
   field, pickVoice, resolveVoice, deepResolveVoice, TTL cache, fallback, projectsapi, admin UI,
   seed data, API handover.
@@ -129,30 +130,40 @@ deliberately broader than the spec. Unknown slugs return HTTP 404.
 `{ id, kind, badge, date, quote, authorName, authorRole, authorInitials, link }`.
 `kind` arrives uppercase (`"TALK"`); `normalizeMention` lowercases it. No voiced fields.
 
-### BUILT BUT UNSEEDED (as of 2026-07-10)
+**`/api/sidequests`** — SEEDED 2026-07-11 (prod, via admin UI; the local dev backend may still
+be empty — `200 []`). Array of 7. Per item:
+`{ id, pos ('tl'|'tr'|'r'|'br'|'bl'|'l'|'center'), emoji, title, body, projectRef, displayOrder }`.
+Live quirks: the `emoji` field is **ignored by the frontend** (owner's call 2026-07-11: "emotes
+look childish" — the render span and its CSS were removed; a future redesign would replace, not
+restore, emotes); `projectRef` is a raw slug and only `pokemon` carries one (`"poketopia"`);
+the center node's id is `time` (NOT `craft` — the pre-wiring hardcoded id).
+Spec: `Design/API_HANDOVER_v3.md` §5.
 
-| Endpoint | Live status | Spec | Seed material |
-|---|---|---|---|
-| `GET /api/sidequests` | **200, returns `[]`** (verified 2026-07-10) | `Design/API_HANDOVER_v3.md` §5 | `Design/seed_data/portfolio_v3_seed_data/json/side_quests.json` + `sql/03_side_quests_v3.sql` |
-| `GET /api/ticker` | **200, returns `[]`** (verified 2026-07-10) | `Design/API_HANDOVER_v3.md` §6 | `Design/seed_data/portfolio_v3_seed_data/json/ticker.json` + `sql/04_ticker_v3.sql` |
+**`/api/ticker`** — SEEDED 2026-07-11 (same caveat). Array of 9 (not the spec's 10; displayOrder
+has a gap at 6 — harmless, frontend sorts). Per item: `{ id, text, projectRef, displayOrder }`.
+Spec: `Design/API_HANDOVER_v3.md` §6.
 
-Never document these as populated. Spec shapes: sidequests items are
-`{ id, pos ('tl'|'tr'|'r'|'br'|'bl'|'l'|'center'), emoji, title, body, projectRef, displayOrder }`;
-ticker items are `{ text, projectRef, displayOrder }`.
+**Frontend wiring built 2026-07-11** (was the last unwired pair): `fetchSideQuests()` and
+`fetchTicker()` in `src/api/client.js`, cloned from the `fetchProjects` pattern — TTL_LANDING
+cache, `!Array.isArray || length === 0` → throw → fallback, sort by `displayOrder`.
+`normalizeSideQuest` builds `proj: '→ ' + projectRef` (raw slug for now — owner said "I will
+correct it. you integrate for now"); `fetchTicker` returns plain strings (`.map(t => t.text)`).
+`SideQuests.jsx` fetches mode-gated (`useEffect` returns early unless personal — recruiter mode
+makes zero calls) with state seeded from `fallbackSideQuests`; `HeroTicker.jsx` fetches on mount
+(only mounted in Hero's personal branch) seeded from `fallbackTicker`. The connector hub in
+SideQuests is derived from `pos === 'center'`, not a hardcoded id.
 
-**Critical refinement of the "built but unseeded" fact:** the backend serves these endpoints,
-but **the frontend never calls them**. There is no `fetchSideQuests`/`fetchTicker` in
-`src/api/client.js` — grep `src/` for `/api/sidequests|/api/ticker` and you hit only the
-comment in `src/config.js:2`. `SideQuests.jsx` hardcodes 7 nodes (`NODES`, lines 13-21) and
-`HeroTicker.jsx` hardcodes 10 lines (`TICKER_LINES`, lines 1-12); the two seed JSONs are exact
-mirrors of those arrays. So "flip `PERSONAL_MODE_ENABLED` and it's API-driven" is FALSE —
-seeding the backend AND writing the fetch wiring are both open work. Launch sequencing:
-see **portfolio-personal-mode-campaign**.
+**The seed JSONs are now STALE**: `Design/seed_data/portfolio_v3_seed_data/json/side_quests.json`
+and `ticker.json` mirror the OLD hardcoded arrays (cards/ai/difftool nodes, `craft` center,
+10 ticker lines). The live seeded content differs (blackqueen/games/shreya nodes, `time` center,
+9 lines, edited copy). The live API is the source of truth; `fallback.js` mirrors it.
+
+Launch sequencing: see **portfolio-personal-mode-campaign**.
 
 ### Verification commands (PowerShell, copy-paste)
 
 ```powershell
-# Status + payload size per endpoint (unseeded ones show len=2, i.e. "[]")
+# Status + payload size per endpoint (len=2 means "[]", i.e. unseeded/empty)
 foreach ($ep in 'site','projects','mentions','sidequests','ticker') {
   $r = Invoke-WebRequest -Uri "https://projectsapi.akashreya.space/api/$ep" -UseBasicParsing -TimeoutSec 15
   Write-Output "$ep -> $($r.StatusCode) len=$($r.Content.Length)"
@@ -212,10 +223,11 @@ The resolution points, and they differ by endpoint — know which is which:
 | Project grid `desc` | **Per render, as of 2026-07-11** — `normalizeProject` (`client.js:10`) now keeps the raw voiced value (`desc: rawDesc`); `Projects.jsx` resolves it via the now-exported `pickVoice(p.desc, mode)` at render time, same pattern as site | **FIXED.** Was: hard-pinned to `pickVoice(raw, 'recruiter')` at fetch time, so personal voice never rendered on the grid. Confirmed live post-fix. `projects` cache key is still not mode-keyed — no longer needed since resolution is render-time, not fetch-time. |
 | Mentions | No voiced fields; only `kind` lowercased | — |
 
-If you add a new fetch (e.g. sidequests/ticker wiring): run the payload through
-`deepResolveVoice` (or confirm the spec guarantees flat fields, as sidequests/ticker do) and
-decide render-time vs fetch-time resolution consciously — render-time + raw cache is the
-pattern that keeps mode toggles free.
+If you add a new fetch: run the payload through `deepResolveVoice` (or confirm the spec
+guarantees flat fields — sidequests/ticker are flat per spec AND verified live, so their
+fetchers skip voice resolution entirely; a comment in `client.js` marks the revisit point if
+the backend ever voices them) and decide render-time vs fetch-time resolution consciously —
+render-time + raw cache is the pattern that keeps mode toggles free.
 
 ### resolveVoice(siteData, mode) — v2 vs v3 shape detection, `client.js:132-154`
 
@@ -254,6 +266,8 @@ const _cache = new Map();            // key -> { value, expiresAt }  (performanc
 | `projects` | 10 min | Normalized projects array (recruiter-pinned desc) |
 | `case:${slug}:${mode}` | 5 min | `{ data: resolvedStudy, notFound }` — only mode-keyed cache |
 | `mentions` | 5 min | Normalized mentions |
+| `sidequests` | 10 min | Normalized sidequests (sorted, `proj` display string built) |
+| `ticker` | 10 min | Plain string array, sorted by displayOrder |
 
 Invalidation reality:
 
@@ -277,6 +291,8 @@ down (GitHub Pages up + backend down must still look complete). Exports:
 | `fallbackSitePersonal` | 682 | **`nav`/`enterprise` gap fixed 2026-07-11** — now sets `nav: fallbackSite.nav` and `enterprise: fallbackSite.enterprise` (references the recruiter fallback, so they can't drift). Personal mode offline now renders both. Contact email still differs (by design): `hello@akashreya.space` vs recruiter's `akashakashreya@gmail.com`. |
 | `fallbackProjects` | 738 | 8 projects, matches live slugs. |
 | `fallbackMentions` | 909 | 4 mentions. |
+| `fallbackSideQuests` | ~962 | 7 nodes, mirror of the live seeded payload (2026-07-11), in NORMALIZED shape — carries the pre-built `proj` display string (`'→ poketopia'`), not raw `projectRef`; no `emoji` key (the frontend ignores that API field). Re-mirror when the owner edits the admin UI. |
+| `fallbackTicker` | ~972 | 9 plain strings in displayOrder, verbatim mirror of live (2026-07-11). |
 
 **The rules:**
 
@@ -303,6 +319,14 @@ remain in the backend's allowed-origins list (unchanged from v2). The frontend s
 shows CORS errors from a new origin (e.g. a preview host), the fix is backend-side in
 `projectservice` — out of scope here beyond the pointer.
 
+**Localhost is NOT allowlisted** (verified 2026-07-11): the prod API returns **403** to any
+request carrying `Origin: http://localhost:5173` (the browser may surface it as 503). So a
+local dev server pointed at the prod API gets fallbacks for everything — this is CORS policy,
+not an outage. `Invoke-WebRequest`/curl without an Origin header succeeds, which is why the
+API "works from PowerShell but not from the browser". Dev against real data = run the local
+backend and seed it; dev against prod requires adding localhost to the allowlist in
+`projectservice`.
+
 ## Known gaps and quirks (facts, not bugs to silently "fix")
 
 | Quirk | Location | Status |
@@ -312,16 +336,20 @@ shows CORS errors from a new origin (e.g. a preview host), the fix is backend-si
 | `fetchSite` accepts any shape incl. `{}` | `client.js:49-59` | OPEN — no validation, 10-min cache |
 | 404 case studies cached 5 min | `client.js:103-108` | Deliberate-looking, not touched |
 | `fallbackSitePersonal` lacks `nav`/`enterprise` | `fallback.js:682-736` | **FIXED 2026-07-11** — now references `fallbackSite.nav`/`fallbackSite.enterprise` |
-| Frontend never calls /api/sidequests, /api/ticker | grep `src/` | OPEN — wiring not built; content hardcoded. Out of scope for a code-only fix (needs backend seeding + owner content decisions) |
+| Frontend never calls /api/sidequests, /api/ticker | `client.js`, `SideQuests.jsx`, `HeroTicker.jsx` | **FIXED 2026-07-11** — backend seeded (prod) + `fetchSideQuests`/`fetchTicker` wired with fallback mirrors; hardcoded arrays deleted |
+| Prod API 403s browser requests from localhost origins | backend CORS config in `projectservice` | OPEN — dev-vs-prod-API only; deployed origins allowlisted (see CORS section) |
+| `Design/seed_data` JSONs for sidequests/ticker mirror the OLD hardcoded content, not what was actually seeded | `json/side_quests.json`, `json/ticker.json` | OPEN — treat live API as truth, seed JSONs as relics |
 | deploy.yml VITE_API_URL fallback = admin UI | `.github/workflows/deploy.yml:36` | **FIXED 2026-07-11** — fallback now `https://projectsapi.akashreya.space` |
 | `marketstream` in seed SQL only | `02_projects_v3.sql:19-22` | OPEN — ghost slug, backend seed-data issue |
 
 ## Provenance and maintenance
 
-All facts verified against `main` and the live API on **2026-07-10**. Re-verify before trusting:
+All facts verified against the working tree and the live API on **2026-07-11** (sidequests/ticker
+wiring built that day in the working tree — confirm it has since been committed with
+`git log --oneline -- src/sections/SideQuests.jsx`). Re-verify before trusting:
 
 ```powershell
-# Endpoint status + seeded-ness (sidequests/ticker len=2 means still unseeded)
+# Endpoint status + seeded-ness (all five should be 200 with len > 2)
 foreach ($ep in 'site','projects','mentions','sidequests','ticker') { $r = Invoke-WebRequest -Uri "https://projectsapi.akashreya.space/api/$ep" -UseBasicParsing -TimeoutSec 15; Write-Output "$ep -> $($r.StatusCode) len=$($r.Content.Length)" }
 
 # Live /api/site shape (top-level 'recruiter','personal' = v3 split; 'brand','hero',... = v2 per-field)
@@ -330,8 +358,12 @@ foreach ($ep in 'site','projects','mentions','sidequests','ticker') { $r = Invok
 # client.js internals still as documented (pickVoice, cache TTLs, resolveVoice branches)
 Select-String -Path src\api\client.js -Pattern 'TTL_LANDING|TTL_CLICK|recruiter.*personal|case:'
 
-# Frontend still doesn't fetch sidequests/ticker (only hit should be the src/config.js comment)
-Get-ChildItem src -Recurse -Include *.js,*.jsx | Select-String -Pattern 'api/sidequests|api/ticker'
+# Sidequests/ticker fetchers exist and components consume them
+Select-String -Path src\api\client.js -Pattern 'fetchSideQuests|fetchTicker'
+Select-String -Path src\sections\SideQuests.jsx,src\sections\HeroTicker.jsx -Pattern 'fetchSideQuests|fetchTicker|fallbackSideQuests|fallbackTicker'
+
+# Localhost still 403'd by prod CORS (expect 403 then 200)
+foreach ($o in 'http://localhost:5173','https://akashreya.space') { try { $r = Invoke-WebRequest -Uri 'https://projectsapi.akashreya.space/api/ticker' -UseBasicParsing -Headers @{ Origin = $o }; Write-Output "$o -> $($r.StatusCode)" } catch { Write-Output "$o -> $($_.Exception.Response.StatusCode.value__)" } }
 
 # Personal-mode flag state
 Get-Content src\config.js

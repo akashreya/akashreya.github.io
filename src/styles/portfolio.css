@@ -774,8 +774,7 @@ section { scroll-margin-top: 24px; }
   border-radius: 50%; background: var(--accent);
   box-shadow: 0 0 16px var(--accent), inset 0 -2px 4px rgba(0,0,0,0.4);
 }
-.sq-node__em    { font-size: 22px; line-height: 1; display: inline-block; }
-.sq-node__title { font-family: var(--font-body); font-weight: 600; font-size: 17px; margin-top: 10px; color: var(--ink); }
+.sq-node__title { font-family: var(--font-body); font-weight: 600; font-size: 17px; color: var(--ink); }
 .sq-node__body  { font-size: 13.5px; color: var(--ink2); line-height: 1.55; margin-top: 6px; }
 .sq-node__proj  { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--accent2); margin-top: 12px; display: inline-block; }
 .sq-node[data-pos="center"] { top:46%; left:50%; transform:translate(-50%,-50%); }

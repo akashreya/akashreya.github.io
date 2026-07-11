@@ -129,7 +129,7 @@ Decision tree, fastest discriminator first:
 
 **Step 2 — Empty response vs missing field?**
 - `fetchProjects`/`fetchMentions` treat an EMPTY ARRAY as failure and throw -> fallback (`client.js:65,123`). An unseeded-but-live endpoint therefore shows fallback content, not a blank section.
-- `/api/sidequests` and `/api/ticker`: built on the backend but UNSEEDED, and **the frontend never calls them anyway** (as of 2026-07-10 no fetch exists in `src/`; `HeroTicker.jsx:1-12` and `SideQuests.jsx:13-21` are hardcoded). If someone reports "sidequests data wrong", it's the hardcoded array, not an API. Endpoint catalog: `portfolio-api-and-fallback`.
+- `/api/sidequests` and `/api/ticker`: SEEDED on prod and API-driven since 2026-07-11 (`fetchSideQuests`/`fetchTicker` in `client.js`, same empty-array = failure rule, mirrors `fallbackSideQuests`/`fallbackTicker`). "Sidequests data wrong" → fix in the admin UI, then re-mirror fallback. "Board shows fallback though prod is seeded" → the LOCAL backend is unseeded (`200 []` → deliberate fallback), or dev is pointed at PROD, which 403s localhost origins (CORS; browser may report 503). Endpoint catalog + CORS: `portfolio-api-and-fallback`.
 
 **Step 3 — Shape mismatch?** `/api/site` has NO fetch-time shape validation (`client.js:49-59`) — an empty object `{}` would be cached 10 min and resolve field-by-field to fallback via the v2 branch. Compare raw payload against both shapes `resolveVoice` handles (v3 top-level split at `client.js:137`, v2 per-field otherwise).
 
