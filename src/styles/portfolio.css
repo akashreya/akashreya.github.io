@@ -588,21 +588,68 @@ section { scroll-margin-top: 24px; }
    ═══════════════════════════════════════════════════════════════════════════ */
 
 [data-mode="personal"] body {
-  background-image:
-    radial-gradient(1200px 700px at 80% -10%, rgba(110,69,255,0.28), transparent 60%),
-    radial-gradient(900px 600px at -10% 90%, rgba(60,40,160,0.22), transparent 65%);
+  background-image: var(--glow-a), var(--glow-b);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
+
+/* Footprint trail — ink prints on the parchment, page coords so they scroll with it */
+[data-mode="personal"] .footprints {
+  position: absolute; top: 0; left: 0; width: 100%; height: 0;
+  overflow: visible; pointer-events: none; z-index: 0;
+}
+[data-mode="personal"] .fp {
+  position: absolute; width: 12px; height: 22px;
+  color: var(--ink2); opacity: 0;
+  animation: fp-fade 3.2s ease-out forwards;
+}
+[data-mode="personal"] .fp svg { display: block; width: 100%; height: 100%; }
+[data-mode="personal"] .footprints.fp-wipe .fp {
+  animation: none; transition: opacity 0.5s ease-out; opacity: 0 !important;
+}
+@keyframes fp-fade { 0% { opacity: 0.45; } 100% { opacity: 0; } }
+
+/* Chikorita buddy — bottom strip, above chrome (never parks on it, ghost while walking) */
+[data-mode="personal"] .chikorita {
+  position: fixed; bottom: 10px; left: 90px; height: 84px;
+  z-index: 75; user-select: none;
+  transition: left 0s linear;
+  will-change: left, transform;
+}
+[data-mode="personal"] .chikorita img {
+  height: 84px; width: auto; display: block;
+  -webkit-user-drag: none;
+}
+[data-mode="personal"] .chk-flip { height: 100%; transform: scaleX(var(--face, 1)); transform-origin: center; }
+[data-mode="personal"] .chk-anim {
+  height: 100%; transform-origin: bottom center;
+  animation: chk-breathe 3.2s ease-in-out infinite;
+}
+[data-mode="personal"] .chikorita.is-sleeping .chk-anim { animation-duration: 5.6s; }
+[data-mode="personal"] .chikorita.is-walking { pointer-events: none; }
+[data-mode="personal"] .chikorita.is-walking .chk-anim { animation: chk-waddle 0.52s ease-in-out infinite; }
+[data-mode="personal"] .chikorita.is-dashing { animation: chk-dash 0.75s ease-in-out; }
+[data-mode="personal"] .chikorita.chk-hop { animation: chk-hop 0.5s ease-out; }
+[data-mode="personal"] .chk-z {
+  position: absolute; top: -16px; left: 62%;
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink3);
+  opacity: 0; pointer-events: none;
+}
+[data-mode="personal"] .chikorita.is-sleeping .chk-z { animation: chk-z 2.8s ease-in-out infinite; }
+@keyframes chk-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.972); } }
+@keyframes chk-waddle { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes chk-hop { 30% { transform: translateY(-16px); } 60% { transform: translateY(0); } 80% { transform: translateY(-6px); } 100% { transform: translateY(0); } }
+@keyframes chk-dash { 40% { transform: translateX(calc(var(--dash, 1) * -80px)); } 100% { transform: translateX(0); } }
+@keyframes chk-z { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(-14px); } }
 
 /* Floating background blobs */
 [data-mode="personal"] .blob {
   position: fixed; border-radius: 50%; filter: blur(80px);
   opacity: 0.5; pointer-events: none; z-index: -1; will-change: transform;
 }
-[data-mode="personal"] .blob.b1 { top:8%;  left:5%;  width:320px; height:320px; background:#6e45ff; animation: blob-drift-a 22s ease-in-out infinite; }
-[data-mode="personal"] .blob.b2 { top:40%; right:8%; width:260px; height:260px; background:#c084d4; animation: blob-drift-b 28s ease-in-out infinite; }
-[data-mode="personal"] .blob.b3 { bottom:12%; left:18%; width:220px; height:220px; background:#4a4dff; animation: blob-drift-c 26s ease-in-out infinite; }
+[data-mode="personal"] .blob.b1 { top:8%;  left:5%;  width:320px; height:320px; background:#c9973f; animation: blob-drift-a 22s ease-in-out infinite; }
+[data-mode="personal"] .blob.b2 { top:40%; right:8%; width:260px; height:260px; background:#7da05a; animation: blob-drift-b 28s ease-in-out infinite; }
+[data-mode="personal"] .blob.b3 { bottom:12%; left:18%; width:220px; height:220px; background:#a86f32; animation: blob-drift-c 26s ease-in-out infinite; }
 @keyframes blob-drift-a { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
 @keyframes blob-drift-b { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,40px)} }
 @keyframes blob-drift-c { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-40px)} }
@@ -692,7 +739,7 @@ section { scroll-margin-top: 24px; }
   box-shadow: 0 24px 60px rgba(110,69,255,0.25), 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 [data-mode="personal"] .card:hover::before { opacity: 0.35; }
-[data-mode="personal"] .card__title { font-style: normal; font-weight: 500; font-family: var(--font-body); font-size: 26px; letter-spacing: -0.015em; }
+[data-mode="personal"] .card__title { font-style: normal; font-weight: 400; font-family: var(--font-script); font-size: 34px; letter-spacing: 0; line-height: 1.15; }
 [data-mode="personal"] .badge { border: none; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent2); }
 
 /* Side quests board (personal-only section) */
