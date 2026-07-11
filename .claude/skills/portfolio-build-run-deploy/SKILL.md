@@ -77,11 +77,24 @@ State of the env files in this working tree, as of 2026-07-10:
 |---|---|---|---|
 | `.env.local` | no (`.gitignore:80`) | `VITE_API_URL=http://localhost:8080` | **YES — this is the file that actually works locally.** UTF-8. |
 | `.env` | no (`.gitignore:76`) | same URL, but **UTF-16 LE encoded** | Inert — Vite's dotenv reads UTF-8; UTF-16 bytes never parse as a key. |
-| `.env.production` | **yes, tracked** | placeholder `https://your-production-api.com`, also UTF-16 LE | Inert (encoding), and CI's process-level env would override it anyway. Harmless but committed. |
+| `.env.production` | **deleted 2026-07-11** (was tracked, placeholder `https://your-production-api.com`, UTF-16 LE) | Doesn't exist anymore — see below. `.env.example` (value-free, tracked) is the template now. |
+| `.env.example` | **yes, tracked (new 2026-07-11)** | `VITE_API_URL=` (and whatever else a dev adds), no real values | Not read by Vite — it's a documentation template. Copy it to `.env.local` and fill in real values. |
 
 **Encoding trap:** PowerShell 5.1's `Out-File`/`Set-Content` default to UTF-16.
 If you ever write an env file, use `-Encoding utf8` or Vite silently ignores
-it — that is exactly how `.env` and `.env.production` became inert.
+it — that is exactly how `.env` and (formerly) `.env.production` became inert.
+
+**Why `.env.production` was deleted rather than fixed (2026-07-11):** it doesn't
+matter what this file contains, because `deploy.yml` sets `VITE_API_URL` as a
+process-level env var on the build step (section 6), and process env always
+wins over every `.env.*` file in Vite's resolution order. So `.env.production`
+only ever affected a bare local `npm run build` run without the env var set —
+a low-value edge case, and one where env files carrying real (even
+non-secret) values shouldn't be tracked in git as a matter of convention.
+`.gitignore` previously listed `.env.production.local` but not plain
+`.env.production` — that gap is why it got committed in the first place; it's
+fixed now. `.env.example` (tracked, no real values) is the template for new
+setups; copy it to `.env.local` and fill in the real URL.
 
 Pointing at each backend:
 
@@ -118,7 +131,7 @@ Scripts from `package.json:7-15`:
 | `npm run lint` | ESLint over the repo | Not run in CI. |
 | `npm run test:visual` | Playwright visual suite: 2 modes × 7 viewports | The deploy-gate test command. Details in `portfolio-visual-testing`. |
 | `npm run test` | Bare `playwright test` — picks up the 7 `*-preview.spec.ts` files too, which call `page.pause()` and are meant for manual inspection | **Avoid for automation; use `test:visual`.** |
-| `npm run update-baseline` | Runs `update-baseline.ps1` | **Stale as of 2026-07-10** — its regexes target a spec shape that no longer exists; running it would wipe baselines and copy nothing back. Use `npx playwright test --update-snapshots tests/playwright-viewport.spec.ts` instead. See `portfolio-visual-testing`. |
+| `npm run update-baseline` | **FIXED 2026-07-11** — `update-baseline.ps1` deleted (was stale/destructive, verified 2026-07-10: its regexes targeted a spec shape that no longer existed and it would have wiped baselines and copied nothing back). The script now runs `playwright test --update-snapshots tests/playwright-viewport.spec.ts` directly. | Safe to use now — no separate script to distrust. See `portfolio-visual-testing`. |
 
 **Playwright port quirk** (`playwright.config.js:38-42` vs `vite.config.js:9`):
 the suite navigates to and waits on port **5174**, but its `webServer` command
@@ -186,22 +199,26 @@ File: `.github/workflows/deploy.yml` (45 lines). As of 2026-07-10:
 | Build | 32-36 | `npm run build` with `VITE_API_URL` from the env block below. |
 | Deploy | 38-44 | `peaceiris/actions-gh-pages@v3`, gated `if: github.ref == 'refs/heads/main'` (line 40), `publish_dir: ./dist`, `force_orphan: true`. Publish branch unspecified → action default `gh-pages`. GitHub Pages serves that branch. |
 
-### The known latent misconfiguration — document, do not fix
+### The admin-UI fallback misconfiguration — FIXED 2026-07-11
 
-`deploy.yml:36`, verbatim:
+`deploy.yml:36` used to fall back to the admin UI, not the API, when the
+`VITE_API_URL` secret was unset:
 
 ```yaml
+# was:
 VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}
+# now:
+VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projectsapi.akashreya.space' }}
 ```
 
-If the `VITE_API_URL` repo secret is ever unset or deleted, the build falls
-back to `https://projects.akashreya.space` — **the admin UI, not the API**
-(section 2). The deployed site would then fail every fetch and silently serve
-static fallback content. Symptom on live: stale/fallback data everywhere,
-network tab full of requests to `projects.akashreya.space` returning HTML.
-Owner knows; leave the line as is unless explicitly told otherwise. Whether
-the secret is currently set is not verifiable from the working tree — check
-via `gh secret list` or repo Settings → Secrets → Actions.
+This sat "documented, don't fix" for a while (owner-known, low blast radius while
+the secret stays set) but the owner asked to fix it outright: *"it doesn't make
+sense at all to fall back on a UI."* The fallback now points at the real API
+host (section 2), so if the `VITE_API_URL` secret is ever unset or deleted, the
+build falls back to the actual API instead of silently baking in an HTML-serving
+admin UI. Whether the secret is currently set is not verifiable from the working
+tree — check via `gh secret list` or repo Settings → Secrets → Actions; either
+way the fallback is now a sane default rather than a footgun.
 
 Other pipeline notes:
 - `force_orphan: true` rewrites gh-pages history on every deploy — gh-pages
@@ -218,9 +235,8 @@ Other pipeline notes:
 - `vite.config.js:6` sets `base: "/"` — correct for a custom domain apex.
   (A `github.io/repo-name` setup would need `base: "/repo-name/"`; not this
   repo.)
-- `package.json:6` still says `"homepage": "https://akashreya.github.io"` —
-  stale CRA-convention leftover, ignored by Vite, harmless. Don't trust it as
-  the deploy target.
+- **FIXED 2026-07-11:** `package.json` used to carry `"homepage": "https://akashreya.github.io"` —
+  a stale CRA-convention leftover, ignored by Vite, harmless but wrong. The field has been removed.
 
 ## 8. SPA routing on GitHub Pages — the 404.html + sessionStorage mechanism
 
@@ -297,8 +313,10 @@ Run after every push to `main`, once the Actions run is green
 [ ] DevTools console: no errors — specifically no minified React error #31
     and no "VITE_API_URL not set" warning
 [ ] DevTools network: API calls go to projectsapi.akashreya.space and return
-    JSON. Requests to projects.akashreya.space (admin UI) = the deploy.yml:36
-    secret fell back — see section 6.
+    JSON. Requests to projects.akashreya.space (admin UI) would mean the
+    VITE_API_URL secret is unset — after the 2026-07-11 fix (section 6) this
+    now also falls back to projectsapi.akashreya.space, so seeing admin-UI
+    requests live would mean something else is overriding the URL upstream.
 [ ] Deep link test (exercises the 404 trick, section 8): open
     https://akashreya.space/in-the-wild directly in a fresh tab — must land on
     the In The Wild page, not a 404 or the home page
@@ -325,12 +343,13 @@ Re-verify the volatile ones before trusting this document:
 | npm scripts | `Get-Content package.json -TotalCount 15` |
 | Dev port / base path | `Get-Content vite.config.js` |
 | axios default URL | `Select-String -Path src\api\axios.js -Pattern 'localhost'` |
-| deploy.yml fallback URL + node version | `Select-String -Path .github\workflows\deploy.yml -Pattern 'VITE_API_URL\|node-version'` |
+| deploy.yml fallback URL (fixed 2026-07-11, expect projectsapi not projects) + node version | `Select-String -Path .github\workflows\deploy.yml -Pattern 'VITE_API_URL\|node-version'` |
 | VITE_API_URL secret set? | `gh secret list` |
 | CNAME content | `Get-Content public\CNAME` |
 | 404 trick intact | `Select-String -Path public\404.html,index.html -Pattern 'spa-redirect'` |
 | Personal mode flag | `Get-Content src\config.js` |
 | tests/ still untracked | `git check-ignore tests/` (prints `tests/` if still ignored) |
 | Playwright port quirk | `Select-String -Path playwright.config.js -Pattern 'port'` |
-| .env file encodings | `Format-Hex .env.production \| Select-Object -First 1` (FF FE = UTF-16, inert) |
-| update-baseline.ps1 still stale | `Select-String -Path tests\playwright-viewport.spec.ts -Pattern 'page\.screenshot'` (no hits = script's regexes still match nothing) |
+| .env.production deleted, .env.example added (fixed 2026-07-11) | `Test-Path .env.production` (expect `False`); `Test-Path .env.example` (expect `True`); `Select-String -Path .gitignore -Pattern '^\.env\.production$'` (expect a hit) |
+| update-baseline.ps1 still deleted (fixed 2026-07-11) | `Test-Path update-baseline.ps1` (expect `False`) |
+| package.json has no stale `homepage` (fixed 2026-07-11) | `Select-String -Path package.json -Pattern 'homepage'` (expect no hits) |

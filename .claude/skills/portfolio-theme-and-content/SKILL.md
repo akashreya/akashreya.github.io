@@ -17,9 +17,9 @@ description: >
 Repo: `E:\Work\Code\GitHub\akashreya-portfolio`. React 19 + Vite SPA, plain CSS with custom
 properties (no Tailwind). All file:line references verified against `main` on 2026-07-10.
 
-**CLAUDE.md is stale.** It describes v2 ("crimson"/"glass" themes, "T/M shortcuts"). v3 is what
-ships: modes are `recruiter` and `personal`, and the shortcuts are flag-dependent (see below).
-When this skill and CLAUDE.md disagree, this skill (and `src/`) wins.
+**CLAUDE.md was refreshed 2026-07-11** to v3 vocabulary and is no longer the stale v2 document
+this used to warn about. It's still a static snapshot, not the living doc — when this skill and
+CLAUDE.md disagree, this skill (and `src/`) still wins, but disagreement should now be rarer.
 
 ## Terminology — four words that WILL be confused
 
@@ -204,7 +204,7 @@ API down. Exports (verified line numbers):
 | `fallbackCaseStudies` | 1 | 8 case studies keyed by slug (no `marketstream`) |
 | `fallbackSite` | 595 | v2-flat site object, recruiter copy |
 | `fallbackSiteRecruiter` | 680 | alias of `fallbackSite` (same object) |
-| `fallbackSitePersonal` | 682 | personal-voice site copy — **has no `nav` or `enterprise` keys** |
+| `fallbackSitePersonal` | 682 | personal-voice site copy — **`nav`/`enterprise` gap fixed 2026-07-11** (now references `fallbackSite.nav`/`fallbackSite.enterprise`, not duplicated) |
 | `fallbackProjects` | 738 | 8 project cards |
 | `fallbackMentions` | 909 | 4 mention cards |
 

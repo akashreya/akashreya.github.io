@@ -30,7 +30,7 @@ export default function PortfolioPage() {
     fetchProjects().then(setProjects);
   }, []);
 
-  useReveal(site, projects);
+  useReveal(site, projects, mode);
 
   return (
     <>

@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://akashreya.github.io",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,7 +10,7 @@
     "preview": "vite preview",
     "test": "playwright test",
     "test:visual": "playwright test tests/playwright-viewport.spec.ts",
-    "update-baseline": "powershell -ExecutionPolicy Bypass -File ./update-baseline.ps1"
+    "update-baseline": "playwright test --update-snapshots tests/playwright-viewport.spec.ts"
   },
   "dependencies": {
     "axios": "^1.9.0",

@@ -53,7 +53,7 @@ Full axis explanation is owned by `portfolio-architecture-contract`. Minimum to 
 | Reveal animations re-fire / jank on every state change | useReveal deps passed as array literal | Trap 6 |
 | Pressing `T` does nothing; `M` toggles the "wrong" thing | Flag-dependent shortcuts, working as coded | Trap 7 |
 | Fixed the data but site still shows old data | 5–10 min TTL in-memory cache | Trap 8 |
-| Toggling mode on a case-study page doesn't change the copy | Effect deps are `[slug]` only | Trap 9 |
+| Toggling mode on a case-study page doesn't change the copy | **Fixed 2026-07-11** — see Trap 9 for what it used to be | Trap 9 |
 | SideQuests/HeroTicker/personal anything missing | `PERSONAL_MODE_ENABLED = false` — not a bug | See `portfolio-personal-mode-campaign` |
 
 Before proposing any fix, also load `superpowers:systematic-debugging`. Any fix that changes behavior ships through the deploy gate (Playwright green + manual dev-server check before push to main) — see `portfolio-build-run-deploy`.
@@ -92,7 +92,7 @@ Invoke-RestMethod http://localhost:8080/api/site | ConvertTo-Json -Depth 10 | Se
 
 Wrapper present + crash = a render path bypasses resolution. Grep the crashing component for the field name; trace back to which fetch fed it.
 
-**Known live asymmetry (as of 2026-07-10, unverified whether intentional):** the projects-grid `desc` is hard-pinned to recruiter voice — `pickVoice(rawDesc, 'recruiter')` at `client.js:10` — and the `projects` cache key is not mode-keyed. Personal-voice `shortDescription` will never show on the grid as written. Not a bug to "fix" in passing; flag it.
+**FIXED 2026-07-11** (was: "Known live asymmetry, unverified whether intentional"): the projects-grid `desc` used to be hard-pinned to recruiter voice — `pickVoice(rawDesc, 'recruiter')` at `client.js:10`. Now `normalizeProject` keeps the raw voiced value and `Projects.jsx` resolves it per-mode at render via the now-exported `pickVoice`. Confirmed live: personal-voice `shortDescription` renders correctly in personal mode. The `projects` cache key is still not mode-keyed — no longer needed, since resolution moved from fetch-time to render-time.
 
 ---
 
@@ -117,7 +117,7 @@ Now DevTools Network shows real API payloads with real shapes. Reproduce, fix, v
 
 **How to confirm you're on fallback (the trap itself):** console shows `⚠️ VITE_API_URL not set, using fallback` (`src/api/axios.js:6`) or `GET /api/... failed, using fallback` warnings (`client.js:56,69,113,127`). If you see those, you are NOT looking at prod-shaped data.
 
-**Prod API base:** https://projectsapi.akashreya.space. **https://projects.akashreya.space is the ADMIN UI, not an API** — and `deploy.yml:36` falls back to that admin-UI URL when the `VITE_API_URL` secret is unset (known latent misconfig, documented not fixed; owned by `portfolio-build-run-deploy`). If prod fetches 404/CORS-fail across the board, check which base URL got baked into the bundle.
+**Prod API base:** https://projectsapi.akashreya.space. **https://projects.akashreya.space is the ADMIN UI, not an API.** `deploy.yml:36` used to fall back to that admin-UI URL when the `VITE_API_URL` secret was unset; **fixed 2026-07-11** — it now falls back to `https://projectsapi.akashreya.space` instead (owned by `portfolio-build-run-deploy`). If prod fetches 404/CORS-fail across the board, check which base URL got baked into the bundle — should no longer be the admin UI even if the secret is missing.
 
 ---
 
@@ -139,7 +139,7 @@ Decision tree, fastest discriminator first:
 
 If you add a section that maps over API data, guard it the same way, or you're re-opening this trap.
 
-**Known gap (as of 2026-07-10):** `fallbackSitePersonal` has no `nav` key (`fallback.js:682-736`) — personal mode with the API down yields an empty NavPill. NavPill's `items ?? []` guard makes it blank, not crashed. Gated behind the personal-mode flag, so not live.
+**FIXED 2026-07-11** (was: "Known gap"): `fallbackSitePersonal` used to have no `nav` key (`fallback.js:682-736`) — personal mode with the API down yielded an empty NavPill (NavPill's `items ?? []` guard made it blank, not crashed). It now sets `nav: fallbackSite.nav` and `enterprise: fallbackSite.enterprise` (references to the recruiter fallback, so the two can't drift apart).
 
 ---
 
@@ -151,7 +151,7 @@ If you add a section that maps over API data, guard it the same way, or you're r
 
 **Triage.** If a NEW test shows invisible content: you forgot `addStyleTag(DISABLE_ANIMATIONS)`, or you added a new animated element whose selector isn't in that CSS block — add it there, not in product CSS. Baseline mechanics, diff reading, and the update-baseline.ps1 flow: `portfolio-visual-testing`.
 
-**Adjacent gotcha (as of 2026-07-10, unverified by running the suite):** the spec iterates `modes = ['recruiter', 'personal']` and asserts `#sidequests` in personal mode (`spec.ts:77-81`), but `PERSONAL_MODE_ENABLED=false` forces recruiter regardless of `?mode=personal` (`ThemeProvider.jsx:12-14`). Personal baselines exist (42 files). If personal-mode tests fail with the flag off, that's the interaction to check first — see `portfolio-visual-testing`.
+**FIXED 2026-07-11** (was: "Adjacent gotcha, unverified by running the suite"): the spec iterates `modes = ['recruiter', 'personal']` and asserts `#sidequests` in personal mode (`spec.ts:77-81`), but `PERSONAL_MODE_ENABLED=false` forces recruiter regardless of `?mode=personal` (`ThemeProvider.jsx:12-14`). The spec used to hard-fail on `#sidequests` when the flag is off; it now imports `PERSONAL_MODE_ENABLED` and calls `test.skip(...)` for personal cases when the flag is off, so those cases skip instead of failing. Personal baselines (42 files) still require a flag-on run to regenerate — see `portfolio-visual-testing`.
 
 ---
 
@@ -170,7 +170,7 @@ If you add a section that maps over API data, guard it the same way, or you're r
 
 ## Trap 6 — useReveal observer recreation (fixed; don't reintroduce)
 
-**Story (`aabf4e7`).** Callers wrote `useReveal([site, projects])` — a fresh array literal every render, never referentially equal, so the effect re-fired and the IntersectionObserver was torn down and recreated on every render. Fix: rest params — signature is `useReveal(...deps)` (`useReveal.js:3`), deps spread through to the effect (`useReveal.js:37`, with an eslint-disable), callers pass values directly: `useReveal(site, projects)` (`PortfolioPage.jsx:31`).
+**Story (`aabf4e7`).** Callers wrote `useReveal([site, projects])` — a fresh array literal every render, never referentially equal, so the effect re-fired and the IntersectionObserver was torn down and recreated on every render. Fix: rest params — signature is `useReveal(...deps)` (`useReveal.js:3`), deps spread through to the effect (`useReveal.js:37`, with an eslint-disable), callers pass values directly: `useReveal(site, projects, mode)` (`PortfolioPage.jsx:33`, `mode` added 2026-07-11 to fix the SideQuests-invisible-after-mode-toggle bug — a different bug than this trap, same file; see `portfolio-architecture-contract` §6 #11).
 
 **Rule.** Call `useReveal(a, b)`, never `useReveal([a, b])` — the array form silently resurrects the churn.
 
@@ -200,9 +200,11 @@ Debug-relevant consequences:
 
 ---
 
-## Trap 9 — Case study ignores mode toggle
+## Trap 9 — Case study ignores mode toggle (FIXED 2026-07-11)
 
-`CaseStudyPage.jsx:75-99`: `fetchCaseStudy(slug, mode)` is called with the current mode, but the effect deps are **`[slug]` only** (`CaseStudyPage.jsx:99`). Toggling mode on an open case study never refetches or re-resolves voice, even though the cache is mode-keyed. Contrast PortfolioPage, where `resolveVoice(site, mode)` runs every render (`PortfolioPage.jsx:24`) so mode toggles work without refetch. Whether the case-study behavior is intentional is unverified — currently moot in prod (mode is locked to recruiter), but it will surface during the personal-mode launch (`portfolio-personal-mode-campaign`).
+`CaseStudyPage.jsx:75-99`: `fetchCaseStudy(slug, mode)` is called with the current mode, but the effect deps used to be **`[slug]` only**. Toggling mode on an open case study never refetched or re-resolved voice, even though the cache was already mode-keyed. Contrast PortfolioPage, where `resolveVoice(site, mode)` runs every render (`PortfolioPage.jsx:24`) so mode toggles work without refetch.
+
+**Fix applied:** deps changed to `[slug, mode]` (`CaseStudyPage.jsx:99`). A mode toggle on an open case study now refetches (or reads the already-warm mode-keyed cache entry) and re-resolves voice. No other change was needed — the fetch function and cache key already supported this.
 
 ---
 
@@ -226,12 +228,12 @@ All file:line references verified against working tree `main` @ `27e7ae0` on 202
 Get-Content src\config.js
 # Voice resolution still lives where this doc says (Trap 1)
 Select-String -Path src\api\client.js -Pattern 'pickVoice|deepResolveVoice|resolveVoice' | Select-Object LineNumber, Line
-# Grid desc still recruiter-pinned (Trap 1 asymmetry)
-Select-String -Path src\api\client.js -Pattern "pickVoice\(rawDesc"
+# Grid desc still resolves per-mode at render, not pinned to recruiter (Trap 1 asymmetry, fixed 2026-07-11)
+Select-String -Path src\api\client.js -Pattern "desc: rawDesc"
 # Cache TTLs and keys (Trap 8)
 Select-String -Path src\api\client.js -Pattern 'TTL_|withCache\('
-# Case-study effect deps still [slug] (Trap 9)
-Select-String -Path src\pages\CaseStudyPage.jsx -Pattern '\}, \[slug\]\);'
+# Case-study effect deps still [slug, mode] (Trap 9, fixed 2026-07-11)
+Select-String -Path src\pages\CaseStudyPage.jsx -Pattern '\}, \[slug, mode\]\);'
 # Null guards still in place (Trap 3)
 Select-String -Path src\pages\CaseStudyPage.jsx,src\components\NavPill.jsx,src\sections\Principles.jsx,src\sections\Enterprise.jsx -Pattern '\?\? \[\]\)\.map'
 # Test opacity injection (Trap 4)

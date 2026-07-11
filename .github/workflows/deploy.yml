@@ -32,8 +32,8 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Set your production API URL here
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}
+          # Falls back to the real API, not the admin UI, if the secret is ever unset.
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projectsapi.akashreya.space' }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

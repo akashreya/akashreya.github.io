@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
+import { pickVoice } from '../api/client';
 
 function ProjectCard({ p }) {
   const isLive = p.kind === 'live';
@@ -68,7 +69,7 @@ export default function Projects({ projects }) {
       </div>
       <div className="projects">
         {projects.map(p => (
-          <ProjectCard key={p.id} p={p} />
+          <ProjectCard key={p.id} p={{ ...p, desc: pickVoice(p.desc, mode) }} />
         ))}
       </div>
     </section>

@@ -47,10 +47,12 @@ Mode selects voice. Full axis rationale: see **portfolio-architecture-contract**
 | `https://projects.akashreya.space` | **Admin UI** for content entry. NOT an API endpoint. | Never point the frontend here. |
 | `E:\Work\Code\GitHub\projectservice` | Backend source (Spring-side repo "ProjectService"). | Pointer only — backend internals are out of scope for this skill library. DB is SQLite. |
 
-**Known latent misconfiguration (document, don't fix):** `.github/workflows/deploy.yml:36`
-sets `VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}` —
-the fallback is the *admin UI*, not the API. Harmless while the secret is set; a footgun if
-it's ever deleted. Pipeline details: see **portfolio-build-run-deploy**.
+**FIXED 2026-07-11** (was: "known latent misconfiguration, document don't fix"):
+`.github/workflows/deploy.yml:36` used to set
+`VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}` — the
+fallback was the *admin UI*, not the API. Owner's call once asked directly: "doesn't make
+sense at all to fall back on a UI." Now falls back to `https://projectsapi.akashreya.space`
+(the real API) instead. Pipeline details: see **portfolio-build-run-deploy**.
 
 **Prod-debugging protocol:** never debug a prod data bug against the live backend. Run the
 backend locally from `E:\Work\Code\GitHub\projectservice`, point the frontend at it, reproduce
@@ -71,8 +73,8 @@ to `http://localhost:8080`. Single axios instance, 30s timeout, no retry, no aut
 |---|---|---|
 | `.env.local` | `http://localhost:8080` | Dev source of truth (UTF-8, wins over `.env`) |
 | `.env` | `http://localhost:8080` | UTF-16 LE encoded — do not rely on it, `.env.local` covers dev |
-| `.env.production` | `https://your-production-api.com` | **Placeholder, dead URL.** A bare local `npm run build` bakes this in. CI overrides via process env. |
-| CI (`deploy.yml:36`) | secret, or admin-UI fallback | See misconfig above |
+| `.env.production` | **deleted 2026-07-11** (was tracked with placeholder `https://your-production-api.com`, UTF-16 LE) | CI never read this file — it sets `VITE_API_URL` as a process env var, which always wins over `.env.*`. Rather than fix the file's content, it was removed entirely; `.gitignore` now also covers plain `.env.production` (previously only `.env.production.local` was listed — the gap that let this get tracked); a value-free `.env.example` is the committed template now. |
+| CI (`deploy.yml:36`) | secret, or `https://projectsapi.akashreya.space` fallback (fixed 2026-07-11, was admin UI) | See above |
 
 ## Endpoint catalog
 
@@ -206,8 +208,8 @@ The resolution points, and they differ by endpoint — know which is which:
 | Data | Resolved WHERE | Consequence |
 |---|---|---|
 | Site (`/api/site`) | **Per render** — `fetchSite` caches the RAW voiced payload; `PortfolioPage.jsx:24` calls `resolveVoice(site, mode)` every render | Mode toggle re-voices instantly, no refetch |
-| Case study | **At fetch time** — `deepResolveVoice` inside `fetchCaseStudy`, cache key includes mode | Mode toggle mid-page does NOT re-voice: `CaseStudyPage.jsx` effect deps are `[slug]` only (line 99), so the mode-keyed cache entry is never requested. Known gap. |
-| Project grid `desc` | In `normalizeProject` (`client.js:10`) — **hard-pinned to `pickVoice(raw, 'recruiter')`**, and the `projects` cache key is not mode-keyed | The personal voice of `shortDescription` never renders on the grid as written |
+| Case study | **At fetch time** — `deepResolveVoice` inside `fetchCaseStudy`, cache key includes mode | **FIXED 2026-07-11.** Used to not re-voice mid-page: `CaseStudyPage.jsx` effect deps were `[slug]` only, so the mode-keyed cache entry was never requested. Deps are now `[slug, mode]` — mode toggle mid-page re-fetches/re-resolves correctly. |
+| Project grid `desc` | **Per render, as of 2026-07-11** — `normalizeProject` (`client.js:10`) now keeps the raw voiced value (`desc: rawDesc`); `Projects.jsx` resolves it via the now-exported `pickVoice(p.desc, mode)` at render time, same pattern as site | **FIXED.** Was: hard-pinned to `pickVoice(raw, 'recruiter')` at fetch time, so personal voice never rendered on the grid. Confirmed live post-fix. `projects` cache key is still not mode-keyed — no longer needed since resolution is render-time, not fetch-time. |
 | Mentions | No voiced fields; only `kind` lowercased | — |
 
 If you add a new fetch (e.g. sidequests/ticker wiring): run the payload through
@@ -272,7 +274,7 @@ down (GitHub Pages up + backend down must still look complete). Exports:
 |---|---|---|
 | `fallbackCaseStudies` | 1 | Keyed by slug, 8 entries. All fields FLAT strings — no voiced wrappers. `poketopia` carries extra `_typePairs`. |
 | `fallbackSite` / `fallbackSiteRecruiter` | 595 / 680 | Same object (alias). Flat v2 shape. |
-| `fallbackSitePersonal` | 682 | **Missing `nav` and `enterprise` keys** — personal mode offline yields an empty NavPill (guarded by `items ?? []`). Contact email differs: `hello@akashreya.space` vs recruiter's `akashakashreya@gmail.com`. |
+| `fallbackSitePersonal` | 682 | **`nav`/`enterprise` gap fixed 2026-07-11** — now sets `nav: fallbackSite.nav` and `enterprise: fallbackSite.enterprise` (references the recruiter fallback, so they can't drift). Personal mode offline now renders both. Contact email still differs (by design): `hello@akashreya.space` vs recruiter's `akashakashreya@gmail.com`. |
 | `fallbackProjects` | 738 | 8 projects, matches live slugs. |
 | `fallbackMentions` | 909 | 4 mentions. |
 
@@ -305,14 +307,14 @@ shows CORS errors from a new origin (e.g. a preview host), the fix is backend-si
 
 | Quirk | Location | Status |
 |---|---|---|
-| Grid `desc` always recruiter voice; `projects` cache not mode-keyed | `client.js:10`, `client.js:63` | As written; personal grid voice unreachable |
-| Case study doesn't re-voice on mode toggle | `CaseStudyPage.jsx:99` deps `[slug]` | Known gap; intent unverified |
-| `fetchSite` accepts any shape incl. `{}` | `client.js:49-59` | No validation, 10-min cache |
-| 404 case studies cached 5 min | `client.js:103-108` | Deliberate-looking |
-| `fallbackSitePersonal` lacks `nav`/`enterprise` | `fallback.js:682-736` | Offline personal mode = empty NavPill |
-| Frontend never calls /api/sidequests, /api/ticker | grep `src/` | Wiring not built; content hardcoded |
-| deploy.yml VITE_API_URL fallback = admin UI | `.github/workflows/deploy.yml:36` | Document, don't fix |
-| `marketstream` in seed SQL only | `02_projects_v3.sql:19-22` | Ghost slug |
+| Grid `desc` always recruiter voice; `projects` cache not mode-keyed | `client.js:10`, `client.js:63` | **FIXED 2026-07-11** — desc now resolves per-mode at render (see resolution-points table above); cache key intentionally left as-is (no longer needs mode-keying) |
+| Case study doesn't re-voice on mode toggle | `CaseStudyPage.jsx:99` deps `[slug]` | **FIXED 2026-07-11** — deps now `[slug, mode]` |
+| `fetchSite` accepts any shape incl. `{}` | `client.js:49-59` | OPEN — no validation, 10-min cache |
+| 404 case studies cached 5 min | `client.js:103-108` | Deliberate-looking, not touched |
+| `fallbackSitePersonal` lacks `nav`/`enterprise` | `fallback.js:682-736` | **FIXED 2026-07-11** — now references `fallbackSite.nav`/`fallbackSite.enterprise` |
+| Frontend never calls /api/sidequests, /api/ticker | grep `src/` | OPEN — wiring not built; content hardcoded. Out of scope for a code-only fix (needs backend seeding + owner content decisions) |
+| deploy.yml VITE_API_URL fallback = admin UI | `.github/workflows/deploy.yml:36` | **FIXED 2026-07-11** — fallback now `https://projectsapi.akashreya.space` |
+| `marketstream` in seed SQL only | `02_projects_v3.sql:19-22` | OPEN — ghost slug, backend seed-data issue |
 
 ## Provenance and maintenance
 
@@ -337,6 +339,6 @@ Get-Content src\config.js
 # fallback.js export lines still match
 Select-String -Path src\data\fallback.js -Pattern "^export const"
 
-# CI VITE_API_URL fallback still the admin UI
+# CI VITE_API_URL fallback now projectsapi, not admin UI (fixed 2026-07-11)
 Select-String -Path .github\workflows\deploy.yml -Pattern "VITE_API_URL"
 ```

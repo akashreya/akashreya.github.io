@@ -25,7 +25,7 @@ deferred this work; this skill is the plan-of-record for whenever it restarts. S
 | `/api/sidequests`, `/api/ticker` | Live on prod, return `200 []` — BUILT BUT UNSEEDED (verified by GET on 2026-07-10) | backend |
 | Frontend fetch of those endpoints | DOES NOT EXIST — SideQuests + HeroTicker content is hardcoded in the components | `src/sections/SideQuests.jsx:13-21`, `src/sections/HeroTicker.jsx:1-12` |
 | Per-project embeds | 2 exist (poketopia, fico-cod-rto); owner verdict: right direction, "too less" | `src/pages/CaseStudyPage.jsx:315-332` |
-| Visual test coverage | Personal half of the suite exists (7 viewports × 6 shots) but only exercisable with the flag flipped locally | `tests/playwright-viewport.spec.ts:13` |
+| Visual test coverage | Personal half of the suite exists (7 viewports × 6 shots); baselines still only generatable with the flag flipped locally, but as of 2026-07-11 the spec `test.skip`s personal cases when the flag is off instead of failing them | `tests/playwright-viewport.spec.ts:13` |
 
 Launch chain (owner-confirmed order): **redesign converges → seed sidequests/ticker via admin UI
 → flip the flag → deploy gate → push**. Each phase below is a gate; do not start a later phase
@@ -192,11 +192,9 @@ npm run dev
 
 - **Seeded**: board shows 7 nodes, ticker 10 lines, matching `json/side_quests.json` / `json/ticker.json`.
 - **Empty** (backend up, tables empty — this is prod's current truth: `200 []`): components must fall back (hardcoded arrays or `fallback.js` data), never render a blank board. If they blank → the wiring lacks an empty-array guard; fix before proceeding.
-- **API down** (kill the backend): whole site must still render from fallbacks. Known gap: `fallbackSitePersonal` has no `nav` key, so personal mode offline yields an empty NavPill — details in **portfolio-api-and-fallback**.
+- **API down** (kill the backend): whole site must still render from fallbacks. **FIXED 2026-07-11:** `fallbackSitePersonal` used to have no `nav` key, so personal mode offline yielded an empty NavPill; it now references `fallbackSite.nav`/`fallbackSite.enterprise` — details in **portfolio-api-and-fallback**.
 
-Known voice gap to decide before launch: `CaseStudyPage` fetches with `[slug]`-only effect deps
-(`CaseStudyPage.jsx:99`), so toggling mode ON a case-study page does not re-resolve voiced copy
-until navigation. Either fix it or accept it in writing at the design gate.
+**FIXED 2026-07-11** (was: "known voice gap to decide before launch"): `CaseStudyPage` used to fetch with `[slug]`-only effect deps, so toggling mode ON a case-study page didn't re-resolve voiced copy until navigation. Deps are now `[slug, mode]` (`CaseStudyPage.jsx:99`) — this gate is satisfied, no owner decision needed here anymore.
 
 ### Gate C3 — visual baselines for changed sections
 
@@ -301,7 +299,7 @@ and `localStorage['akashreya.mode']` start being honored.
 - [ ] `/in-the-wild` in personal mode — cards stagger in with the drop animation
 - [ ] Deep link test: paste `https://akashreya.space/work/poketopia?mode=personal` in a fresh tab — must survive the 404.html→sessionStorage redirect (mechanism in **portfolio-build-run-deploy**)
 - [ ] Reload after toggling — mode persists via localStorage
-- [ ] One-line CI caveat: if the `VITE_API_URL` secret is ever unset, the workflow bakes in the ADMIN UI url, not the API (`deploy.yml:36`) — known latent misconfig, documented in **portfolio-build-run-deploy**; personal mode would silently run on fallbacks
+- [ ] One-line CI caveat (**fixed 2026-07-11**): `deploy.yml:36` used to bake in the ADMIN UI url if the `VITE_API_URL` secret was ever unset; it now falls back to `https://projectsapi.akashreya.space` (the real API) instead — details in **portfolio-build-run-deploy**. Personal mode running on fallbacks due to this specific misconfig is no longer a risk; fallback data can still occur for other reasons (backend down, etc.)
 
 Rollback: revert the flag-flip commit, push to main. The deploy is `force_orphan`, so the previous
 gh-pages state is not recoverable from the branch — rollback is always roll-forward from `main`.

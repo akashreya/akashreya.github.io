@@ -90,11 +90,15 @@ npm run test:visual
 
 Because the suite runs against `npm run dev` with your local env, **whatever `VITE_API_URL` points at leaks into the screenshots** — content from a local backend vs prod vs fallback data can differ and produce diffs that are data drift, not code regressions. See portfolio-api-and-fallback for the data layer; keep the API target consistent between baseline generation and test runs.
 
-### Personal-mode tests require a local flag flip (as of 2026-07-10)
+### Personal-mode tests skip (not fail) when the flag is off (FIXED 2026-07-11)
 
-`src/config.js` ships `PERSONAL_MODE_ENABLED = false`, and `src/theme/ThemeProvider.jsx:12-15` then **ignores `?mode=personal` entirely** — mode is forced to `recruiter`. `SideQuests.jsx:29` returns `null` outside personal mode. So the 7 `personal / *` tests fail on `expect(page.locator('#sidequests')).toBeVisible()` while the flag is off. The 42 personal baselines were generated with the flag on.
+`src/config.js` ships `PERSONAL_MODE_ENABLED = false`, and `src/theme/ThemeProvider.jsx:12-15` then **ignores `?mode=personal` entirely** — mode is forced to `recruiter`. `SideQuests.jsx:29` returns `null` outside personal mode. Previously, the 7 `personal / *` tests **failed** on `expect(page.locator('#sidequests')).toBeVisible()` while the flag was off, which blocked reading "full suite green" as a clean deploy-gate signal.
 
-To run the full 14-test matrix: temporarily set `PERSONAL_MODE_ENABLED = true` in `src/config.js`, run the suite, **revert before committing** (flipping the flag is a launch decision owned by portfolio-personal-mode-campaign, not a test convenience). If you only changed recruiter-visible surface, gating on the recruiter half is the pragmatic minimum:
+**Fix applied:** the spec now imports `PERSONAL_MODE_ENABLED` from `src/config.js` and calls `test.skip(mode === 'personal' && !PERSONAL_MODE_ENABLED, '...')` at the top of each test body. Personal cases now **skip** instead of failing when the flag is off, so "full suite green" (recruiter passed, personal skipped) is again a trustworthy deploy-gate reading without needing to scope to `-g "recruiter"`. Note this fix lives in `tests/playwright-viewport.spec.ts`, which is gitignored — it's a local-tree-only change, same as the rest of the suite.
+
+The 42 personal baselines were still generated with the flag on, and still require the flag on to regenerate or to actually exercise the personal assertions (not just skip past them):
+
+To run the full 14-test matrix for real: temporarily set `PERSONAL_MODE_ENABLED = true` in `src/config.js`, run the suite, **revert before committing** (flipping the flag is a launch decision owned by portfolio-personal-mode-campaign, not a test convenience). If you only changed recruiter-visible surface, gating on the recruiter half is still the pragmatic minimum (and now equivalent to just running the full suite, since personal will self-skip):
 
 ```powershell
 npx playwright test tests/playwright-viewport.spec.ts -g "recruiter"
@@ -170,7 +174,7 @@ npm run test:visual   # confirm green
 
 `--update-snapshots` rewrites only the baselines for tests that run — combine with `-g "recruiter"` to refresh half the matrix.
 
-**Do NOT use `update-baseline.ps1` / `npm run update-baseline` — it is stale (verified 2026-07-10).** The script edits the spec with regexes that expect an older spec shape: it toggles `//await page.screenshot` ↔ `await expect(page).toHaveScreenshot` (the current spec has **no** `page.screenshot` lines), then copies from a `screenshots/` directory (which the current spec never creates and which does not exist), renaming to `*-win32.png` (current baselines are `*-chromium-win32.png`). Net effect as-is: **Step 3 wipes `tests\playwright-viewport.spec.ts-snapshots\` and copies nothing back.** Since baselines are not in git (§1), that deletion is unrecoverable except by regenerating. If touching the script, either delete it or rewrite it around `--update-snapshots`; don't patch the regexes.
+**`update-baseline.ps1` was deleted 2026-07-11 — if you're looking for it, it's gone on purpose.** It was stale (verified 2026-07-10): the script edited the spec with regexes that expected an older spec shape, and would have wiped `tests\playwright-viewport.spec.ts-snapshots\` and copied nothing back (baselines aren't in git — §1 — so that deletion would have been unrecoverable except by regenerating). It was deleted rather than fixed, with the file's tracked status confirmed and the deletion owner-approved first. `npm run update-baseline` (`package.json`) now runs `playwright test --update-snapshots tests/playwright-viewport.spec.ts` directly — the same command in §6 below, just aliased. Use that; there is no separate script anymore.
 
 ## 7. Adding coverage for a new section or page
 
@@ -205,5 +209,6 @@ Verified against the working tree 2026-07-10 (branch `main`, commit 27e7ae0; `te
 | `tests/` gitignored | `git check-ignore tests/ ; git ls-files tests/` (empty) |
 | Personal flag state | `Get-Content src/config.js` (`PERSONAL_MODE_ENABLED`, false as of 2026-07-10) |
 | Flag forces recruiter, ignores `?mode=` | `src/theme/ThemeProvider.jsx:12-15` |
-| update-baseline.ps1 still stale | `Select-String -Path tests/playwright-viewport.spec.ts -Pattern 'page\.screenshot'` (no hits = still stale) |
+| update-baseline.ps1 still deleted (fixed 2026-07-11) | `Test-Path update-baseline.ps1` (expect `False`) |
+| Personal tests still skip (not fail) with flag off (fixed 2026-07-11) | `Select-String -Path tests/playwright-viewport.spec.ts -Pattern 'test\.skip|PERSONAL_MODE_ENABLED'` (expect hits for both) |
 | No CI test step | `Get-Content .github/workflows/deploy.yml` |

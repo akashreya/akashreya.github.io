@@ -7,7 +7,9 @@ function normalizeProject(p) {
     ...p,
     kind: p.kind?.toLowerCase(),
     span: p.span?.toLowerCase(),
-    desc: pickVoice(rawDesc, 'recruiter'),
+    // Keep the raw (possibly {recruiter, personal}) value — resolved per-mode at render
+    // by the consuming component via pickVoice, not hard-pinned here.
+    desc: rawDesc,
     tags: Array.isArray(p.technologies)
       ? p.technologies.map(t => t.name)
       : (p.tags ?? []),
@@ -20,7 +22,7 @@ function normalizeMention(m) {
 
 // Resolve a "voiced" field: {recruiter: T, personal: T} → T for the given mode.
 // Flat values (strings, arrays, plain objects without recruiter/personal) pass through unchanged.
-function pickVoice(field, mode) {
+export function pickVoice(field, mode) {
   if (
     field !== null &&
     field !== undefined &&

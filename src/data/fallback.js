@@ -733,6 +733,10 @@ export const fallbackSitePersonal = {
       { label: 'email',    href: 'mailto:hello@akashreya.space' },
     ],
   },
+  // nav and enterprise are voice-neutral, so mirror the recruiter fallback
+  // rather than duplicating it (avoids drift; see portfolio-architecture-contract §6 #2).
+  nav: fallbackSite.nav,
+  enterprise: fallbackSite.enterprise,
 };
 
 export const fallbackProjects = [

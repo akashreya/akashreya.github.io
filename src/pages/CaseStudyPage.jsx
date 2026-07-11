@@ -96,7 +96,7 @@ export default function CaseStudyPage() {
       });
 
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [slug, mode]);
 
   if (loading) {
     return (
