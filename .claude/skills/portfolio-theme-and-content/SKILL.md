@@ -189,11 +189,9 @@ API is `https://projectsapi.akashreya.space`). Backend source: `E:\Work\Code\Git
 |---|---|---|
 | Faux console line `GET /api/v1/me · personal · 12ms` | `src/components/ConsoleLine.jsx:8` | personal |
 | Hero map-pin label `Bengaluru · IST` | `src/sections/Hero.jsx:79` | recruiter |
-| Enterprise collapsed strip `13y · enterprise, ...` + `resume.pdf →` | `src/sections/Enterprise.jsx:11-12` | personal |
+| `Connect→` mailto label on the enterprise strip | `src/sections/Enterprise.jsx` | personal — label only; the strip TEXT moved to `sections.enterprise.collapsed` (API/fallback) on 2026-07-12, and personal now renders `site.enterprise` as mini cards |
 | Footer name casing + `Bengaluru · IST` | `src/sections/Footer.jsx:10-17` | both (forked) |
-| Section headings: `things i made.` / `Selected work.` | `src/sections/Projects.jsx:66` | both (forked) |
-| Section headings: `rules.` / `How I build.` | `src/sections/Principles.jsx:10` | both (forked) |
-| `obsessions.` heading, `Enterprise work.` heading | `SideQuests.jsx:36`, `Enterprise.jsx:21` | per section |
+| ~~Section headings~~ — **API-driven since 2026-07-12**: all four section heads (projects/sidequests/principles/enterprise) render `sections.X.title`/`num` from `/api/site` via the shared `SectionHead` component; empty-string voices fall back to the strings mirrored in `fallback.js` `sections`. Edit via admin UI. A trailing "." in the title renders as the accent `<em>.</em>` (frontend chrome). | `src/components/SectionHead.jsx`, `client.js` `resolveSections` | both |
 | Mode-transition beat texts | `src/theme/ThemeProvider.jsx:52-54` | transition overlay |
 | ThemeHint label | `src/components/ThemeHint.jsx:16-19` | both |
 

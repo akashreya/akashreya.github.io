@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
 import { pickVoice } from '../api/client';
+import SectionHead from '../components/SectionHead';
+import { bullets } from '../utils/text';
 
 function ProjectCard({ p }) {
   const isLive = p.kind === 'live';
@@ -22,7 +24,13 @@ function ProjectCard({ p }) {
         </span>
       </div>
       <h3 className="card__title">{p.title}</h3>
-      <p className="card__desc">{p.desc}</p>
+      {bullets(p.desc).length > 0 && (
+        <ul className="card__points">
+          {bullets(p.desc).map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>
+      )}
       {p.metrics && p.metrics.length > 0 && (
         <div className="card__metrics">
           {p.metrics.map((m, i) => (
@@ -58,15 +66,12 @@ function ProjectCard({ p }) {
   );
 }
 
-export default function Projects({ projects }) {
+export default function Projects({ projects, sections }) {
   const { mode } = useTheme();
 
   return (
     <section id="projects" className="page">
-      <div className="section-head reveal">
-        <h2>{mode === 'personal' ? <>things i <em>made</em>.</> : <>Selected <em>work</em>.</>}</h2>
-        <span className="nb">§ III</span>
-      </div>
+      <SectionHead title={sections?.projects?.title} num={sections?.projects?.num} />
       <div className="projects">
         {projects.map(p => (
           <ProjectCard key={p.id} p={{ ...p, desc: pickVoice(p.desc, mode) }} />

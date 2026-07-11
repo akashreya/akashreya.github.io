@@ -514,6 +514,9 @@ section { scroll-margin-top: 24px; }
 .ent-card__role { font-family: var(--font-display); font-size: 22px; line-height: 1.2; font-style: italic; letter-spacing: -0.015em; font-weight: 400; }
 [data-mode="personal"] .ent-card__role { font-style: normal; font-weight: 500; }
 .ent-card__desc { font-size: 14px; color: var(--ink2); line-height: 1.65; }
+.ent-card__points, .card__points { margin: 0; padding-left: 18px; }
+.ent-card__points li, .card__points li { font-size: 14px; color: var(--ink2); line-height: 1.65; margin: 2px 0; }
+.ent-card__points li::marker, .card__points li::marker { color: var(--accent); }
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 
@@ -815,7 +818,11 @@ section { scroll-margin-top: 24px; }
 [data-mode="personal"] .navpill__num { font-family: var(--font-mono); font-style: normal; letter-spacing: 0.08em; font-size: 11px; }
 
 /* Enterprise collapsed (personal) */
-[data-mode="personal"] .enterprise { display: none; }
+/* Personal enterprise: mini cards (client · period · role), three across. */
+[data-mode="personal"] .enterprise { grid-template-columns: repeat(3, 1fr); padding: 24px 0 8px; }
+@media (max-width: 760px) {
+  [data-mode="personal"] .enterprise { grid-template-columns: 1fr; }
+}
 [data-mode="personal"] .enterprise-collapsed {
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   padding: 18px 22px; background: var(--surf2);

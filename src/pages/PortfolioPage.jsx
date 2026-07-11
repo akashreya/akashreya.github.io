@@ -41,10 +41,10 @@ export default function PortfolioPage() {
       <ConsoleLine />
       <Hero hero={resolved.hero} />
       <LiveBanner liveBanner={resolved.liveBanner} />
-      <Projects projects={projects} />
-      <SideQuests />
-      <Principles principles={resolved.principles} />
-      <Enterprise enterprise={resolved.enterprise} contact={resolved.contact} />
+      <Projects projects={projects} sections={resolved.sections} />
+      <SideQuests sections={resolved.sections} />
+      <Principles principles={resolved.principles} sections={resolved.sections} />
+      <Enterprise enterprise={resolved.enterprise} contact={resolved.contact} sections={resolved.sections} />
       <Footer brand={resolved.brand} contact={resolved.contact} />
       <NavPill items={resolved.nav} />
       <ThemeHint />

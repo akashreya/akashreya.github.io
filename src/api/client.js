@@ -163,6 +163,22 @@ export async function fetchMentions() {
   }
 }
 
+// Section headings: empty-string voices mean "unseeded", so || (not ??) lets
+// them fall through to the fallback string — no heading can render blank.
+function resolveSections(apiSections, mode, fbSections) {
+  const out = {};
+  for (const key of ['projects', 'sidequests', 'principles', 'enterprise']) {
+    const api = apiSections?.[key];
+    const fb = fbSections?.[key] ?? {};
+    out[key] = {
+      num: api?.num || fb.num,
+      title: pickVoice(api?.title, mode) || fb.title,
+      collapsed: pickVoice(api?.collapsed, mode) || fb.collapsed,
+    };
+  }
+  return out;
+}
+
 export function resolveVoice(siteData, mode) {
   const fallback = mode === 'personal' ? fallbackSitePersonal : fallbackSiteRecruiter;
   if (!siteData) return fallback;
@@ -184,5 +200,6 @@ export function resolveVoice(siteData, mode) {
     nav: pickVoice(siteData.nav, mode) ?? fallback.nav,
     enterprise: siteData.enterprise ?? fallback.enterprise,
     contact: siteData.contact ?? fallback.contact,
+    sections: resolveSections(siteData.sections, mode, fallback.sections),
   };
 }

@@ -674,6 +674,12 @@ export const fallbackSite = {
       { "label": "linkedin", "href": "https://www.linkedin.com/in/akash-s-kantharaj/" },
       { "label": "email",    "href": "mailto:akashakashreya@gmail.com" }
     ]
+  },
+  "sections": {
+    "projects":   { "num": "III",   "title": "Selected work." },
+    "sidequests": { "num": "III·b", "title": "" },
+    "principles": { "num": "IV",    "title": "How I build." },
+    "enterprise": { "num": "V",     "title": "Enterprise Work.", "collapsed": "" }
   }
 };
 
@@ -737,6 +743,12 @@ export const fallbackSitePersonal = {
   // rather than duplicating it (avoids drift; see portfolio-architecture-contract §6 #2).
   nav: fallbackSite.nav,
   enterprise: fallbackSite.enterprise,
+  sections: {
+    projects:   { num: 'III',   title: 'things i made.' },
+    sidequests: { num: 'III·b', title: 'obsessions.' },
+    principles: { num: 'IV',    title: 'rules.' },
+    enterprise: { num: 'V',     title: '9 to 5', collapsed: '15y · enterprise, decisioning, telecom · the long story' },
+  },
 };
 
 export const fallbackProjects = [

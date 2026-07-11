@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '../theme/ThemeProvider';
 import { fetchSideQuests } from '../api/client';
 import { fallbackSideQuests } from '../data/fallback';
+import SectionHead from '../components/SectionHead';
 
 const NODE_POS = {
   tl:     { x: 18, y: 18 },
@@ -13,7 +14,7 @@ const NODE_POS = {
   center: { x: 50, y: 50 },
 };
 
-export default function SideQuests() {
+export default function SideQuests({ sections }) {
   const { mode } = useTheme();
   const [quests, setQuests] = useState(fallbackSideQuests);
 
@@ -30,10 +31,7 @@ export default function SideQuests() {
 
   return (
     <section id="sidequests" className="side-quests page">
-      <div className="section-head reveal">
-        <h2>obsessions<em>.</em></h2>
-        <span className="nb">§ III·b</span>
-      </div>
+      <SectionHead title={sections?.sidequests?.title} num={sections?.sidequests?.num} />
       <div className="sq-board reveal">
         <svg
           className="sq-board__svg"

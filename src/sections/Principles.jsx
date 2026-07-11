@@ -1,15 +1,11 @@
-import { useTheme } from '../theme/ThemeProvider';
+import SectionHead from '../components/SectionHead';
 
-export default function Principles({ principles }) {
-  const { mode } = useTheme();
+export default function Principles({ principles, sections }) {
   const { quote, items } = principles;
 
   return (
     <section id="principles" className="page">
-      <div className="section-head reveal">
-        <h2>{mode === 'personal' ? 'rules.' : 'How I build.'}</h2>
-        <span className="nb">§ IV</span>
-      </div>
+      <SectionHead title={sections?.principles?.title} num={sections?.principles?.num} />
       <div className="principles">
         <div className="principles__quote reveal">
           {quote?.pre} <em>{quote?.strong}</em>{quote?.post}
