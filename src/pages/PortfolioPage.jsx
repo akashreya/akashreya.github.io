@@ -10,7 +10,6 @@ import ModeTransition from '../components/ModeTransition';
 import AmbientBlobs from '../components/AmbientBlobs';
 import Footprints from '../components/Footprints';
 import Chikorita from '../components/Chikorita';
-import ConsoleLine from '../components/ConsoleLine';
 import Hero from '../sections/Hero';
 import LiveBanner from '../sections/LiveBanner';
 import Projects from '../sections/Projects';
@@ -38,7 +37,6 @@ export default function PortfolioPage() {
       <Footprints />
       <Chikorita />
       <TopMark brand={resolved.brand} />
-      <ConsoleLine />
       <Hero hero={resolved.hero} />
       <LiveBanner liveBanner={resolved.liveBanner} />
       <Projects projects={projects} sections={resolved.sections} />

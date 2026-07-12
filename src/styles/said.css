@@ -184,7 +184,7 @@
 [data-mode="personal"] .mention:hover {
   transform: translateY(-4px) rotate(-0.6deg) scale(1.02);
   z-index: 5;
-  box-shadow: 0 24px 56px rgba(110,69,255,0.28), 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 24px 56px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 [data-mode="personal"] .sd-eyebrow { text-transform: lowercase; letter-spacing: 0.06em; }
 [data-mode="personal"] .sd-eyebrow::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }

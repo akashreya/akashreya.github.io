@@ -64,6 +64,7 @@ export default function CaseStudyPage() {
   const { mode, triggerModeTransition } = useTheme();
   const [loading, setLoading] = useState(true);
   const [study, setStudy] = useState(null);
+  const [rawStudy, setRawStudy] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
   const activeSection = useActiveSectionSpy(SECTION_IDS);
@@ -77,14 +78,16 @@ export default function CaseStudyPage() {
     setLoading(true);
     setNotFound(false);
     setStudy(null);
+    setRawStudy(null);
 
     fetchCaseStudy(slug, mode)
-      .then(({ data, notFound: nf }) => {
+      .then(({ data, raw, notFound: nf }) => {
         if (cancelled) return;
         if (nf || !data) {
           setNotFound(true);
         } else {
           setStudy(data);
+          setRawStudy(raw);
         }
       })
       .catch((err) => {
@@ -312,9 +315,9 @@ export default function CaseStudyPage() {
       <ThemeHint />
       <ModeTransition />
 
-      {slug === 'fico-cod-rto' && (
+      {slug === 'fico-cod-rto' && rawStudy && (
         <ServiceInspector
-          data={study}
+          data={rawStudy}
           endpoint={`/api/v1/projects/${slug}`}
           statusMs={12}
           keyMap={{

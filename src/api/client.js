@@ -105,16 +105,19 @@ export async function fetchCaseStudy(slug, mode = 'recruiter') {
     return await withCache(`case:${slug}:${mode}`, TTL_CLICK, async () => {
       try {
         const res = await axiosInstance.get(`/api/projects/${slug}`, { withCredentials: false });
-        return { data: normalizeCaseStudy(res.data, mode), notFound: false };
+        // raw is the untouched API payload (voiced wrappers intact) — kept separately from the
+        // voice-resolved `data` so consumers like ServiceInspector can show the real response.
+        return { data: normalizeCaseStudy(res.data, mode), raw: res.data, notFound: false };
       } catch (err) {
-        if (err.response?.status === 404) return { data: null, notFound: true };
+        if (err.response?.status === 404) return { data: null, raw: null, notFound: true };
         throw err;
       }
     });
   } catch {
     console.warn(`GET /api/projects/${slug} failed, using fallback`);
     const fallback = fallbackCaseStudies[slug];
-    return { data: fallback ?? null, notFound: !fallback };
+    // raw stays null on fallback — it isn't a real API response, so callers must not present it as one.
+    return { data: fallback ?? null, raw: null, notFound: !fallback };
   }
 }
 

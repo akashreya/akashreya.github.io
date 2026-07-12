@@ -9,9 +9,9 @@
   clip-path: circle(0px at 50vw 100vh);
   will-change: clip-path;
   background:
-    radial-gradient(1200px 700px at 80% -10%, rgba(110,69,255,0.45), transparent 60%),
-    radial-gradient(900px 600px at -10% 90%, rgba(60,40,160,0.45), transparent 65%),
-    #0a0814;
+    radial-gradient(1200px 700px at 80% -10%, rgba(255,168,58,0.42), transparent 60%),
+    radial-gradient(900px 600px at -10% 90%, rgba(150,112,48,0.42), transparent 65%),
+    #15110d;
 }
 .mode-iris--in .mode-iris__disc {
   animation: mode-iris-expand 700ms cubic-bezier(.55,.05,.35,1) forwards;
