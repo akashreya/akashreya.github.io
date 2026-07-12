@@ -739,9 +739,17 @@ export const fallbackSitePersonal = {
       { label: 'email',    href: 'mailto:hello@akashreya.space' },
     ],
   },
-  // nav and enterprise are voice-neutral, so mirror the recruiter fallback
-  // rather than duplicating it (avoids drift; see portfolio-architecture-contract §6 #2).
-  nav: fallbackSite.nav,
+  // nav IS voiced on the live API (verified 2026-07-12) — mirrored here rather than
+  // aliased to the recruiter fallback, which lacked a sidequests/Obsessions entry and
+  // used recruiter labels. enterprise remains voice-neutral, so it still mirrors.
+  nav: [
+    { id: 'work',       num: 'I',   name: 'Me',             target: 'hero' },
+    { id: 'projects',   num: 'II',  name: 'Things I built',  target: 'projects' },
+    { id: 'obsessions', num: 'III', name: 'Obsessions',      target: 'sidequests' },
+    { id: 'principles', num: 'IV',  name: 'How I build',     target: 'principles' },
+    { id: 'enterprise', num: 'V',   name: '9 to 5',          target: 'enterprise' },
+    { id: 'contact',    num: 'VI',  name: 'Send An Owl',     target: 'footer' },
+  ],
   enterprise: fallbackSite.enterprise,
   sections: {
     projects:   { num: 'III',   title: 'things i made.' },

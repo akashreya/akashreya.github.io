@@ -30,8 +30,11 @@ function useScrollSpy(ids, offset = 140) {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
+    // ids is re-derived from props each render (e.g. nav swaps from fallback to
+    // fetched data); re-subscribe whenever its content actually changes, not on
+    // every render — hence the joined string instead of the array itself.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ids.join('|')]);
 
   return activeId;
 }
