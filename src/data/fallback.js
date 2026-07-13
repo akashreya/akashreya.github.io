@@ -606,14 +606,19 @@ export const fallbackSite = {
     "title": "Staff engineer building productivity multiplier tools and decisioning systems.",
     "thesis": "AI generates fast. Validation is where the engineering lives. Anything repeatable is AI-automatable.",
     "stats": [
-      { "value": "15+", "label": "Years in fintech" },
-      { "value": "7K+", "label": "Engineers shipped to" },
-      { "value": "#1",  "label": "FICO GSI Hackathon 2026" }
+      { "value": "15+", "label": "Years in fintech",        "href": "#enterprise" },
+      { "value": "7K+", "label": "Engineers shipped to",    "href": "/work/lseg-rfa" },
+      { "value": "#1",  "label": "FICO GSI Hackathon 2026", "href": "/work/fico-cod-rto" }
     ],
     "ctas": [
       { "label": "Read the work", "href": "#projects",   "primary": true },
       { "label": "Principles",    "href": "#principles", "primary": false }
-    ]
+    ],
+    "terminal": {
+      "loc": "Bengaluru",
+      "now": "Platform demoed at FICO World while I stayed in Bengaluru. It ran.",
+      "latest": { "text": "Everything ABC — solo product · ~2K users", "projectRef": "everythingabc" }
+    }
   },
   "liveBanner": {
     "label": "LIVE · FICO WORLD 2026",
@@ -621,7 +626,8 @@ export const fallbackSite = {
     "sub": "First place at the FICO GSI Partner Hackathon 2026. Showcased at FICO World, Orlando.",
     "badgeBig": "1",
     "badgeSmall": "st",
-    "badgeLabel": "Place"
+    "badgeLabel": "Place",
+    "projectRef": "fico-cod-rto"
   },
   "principles": {
     "quote": {
@@ -661,11 +667,10 @@ export const fallbackSite = {
   ],
   "nav": [
     { "id": "work",       "num": "I",   "name": "Work",       "target": "hero" },
-    { "id": "live",       "num": "II",  "name": "Live",       "target": "live" },
-    { "id": "projects",   "num": "III", "name": "Projects",   "target": "projects" },
-    { "id": "principles", "num": "IV",  "name": "Principles", "target": "principles" },
-    { "id": "enterprise", "num": "V",   "name": "Enterprise", "target": "enterprise" },
-    { "id": "contact",    "num": "VI",  "name": "Contact",    "target": "footer" }
+    { "id": "projects",   "num": "II",  "name": "Projects",   "target": "projects" },
+    { "id": "principles", "num": "III", "name": "Principles", "target": "principles" },
+    { "id": "enterprise", "num": "IV",  "name": "Enterprise", "target": "enterprise" },
+    { "id": "contact",    "num": "V",   "name": "Contact",    "target": "footer" }
   ],
   "contact": {
     "email": "akashakashreya@gmail.com",
@@ -694,20 +699,26 @@ export const fallbackSitePersonal = {
     where: 'Bengaluru · IST',
   },
   hero: {
-    eyebrow: 'Engineer · Builder · 9 projects in 2025',
+    eyebrow: "ENGINEER · BUILDER · HOT WATER ENTHUSIAST · GAMER",
     nameFirst: 'akash',
     nameLast: 's k.',
-    title: 'builds things. finishes them. has opinions about fonts.',
-    thesis: 'Raised to respect others and value time. Build it beautifully. Or don\'t build it.',
+    title: "Senior enough to say 'it depends'.",
+    thesis: "Short thoughts, fired in order. I'd rather show you than tell you.",
     stats: [
-      { value: '9',    label: 'Projects, 2025' },
-      { value: '10K+', label: 'Families' },
-      { value: '0',    label: 'Shipped ugly' },
-      { value: '3',    label: 'Books' },
+      { value: '~2k',    label: 'Users',                 href: '/work/everythingabc' },
+      { value: '0',      label: 'Shipped Ugly',          href: '#projects' },
+      { value: 'Winner', label: 'FICO GSI Hackathon 26', href: '/work/fico-cod-rto' },
     ],
     ctas: [
-      { label: 'See the work',   href: '#projects',   primary: true },
-      { label: 'What I\'m into', href: '#sidequests', primary: false },
+      { label: 'Things I built', href: '#projects',   primary: true },
+      { label: "What I'm into",  href: '#sidequests', primary: false },
+    ],
+    ledger: [
+      { label: 'drinking',  value: 'hot water. Not coffee. This is not a debate.',                   projectRef: null,        href: null },
+      { label: 'playing',   value: 'POKÉTOPIA — built it myself. Nine regions. ~500 trainers.',      projectRef: 'poketopia', href: null },
+      { label: 'listening', value: 'Shreya Ghoshal. No shuffle.',                                    projectRef: null,        href: null },
+      { label: 'writing',   value: 'Three books in 2025. Did not announce them. They exist anyway.', projectRef: null,        href: null },
+      { label: 'building',  value: 'this site — one mode per audience.',                             projectRef: null,        href: 'https://github.com/akashreya' },
     ],
   },
   liveBanner: {
@@ -717,6 +728,7 @@ export const fallbackSitePersonal = {
     badgeBig: '1',
     badgeSmall: 'st',
     badgeLabel: '✦',
+    projectRef: 'fico-cod-rto',
   },
   principles: {
     quote: {
