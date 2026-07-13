@@ -681,10 +681,10 @@ export const fallbackSite = {
     ]
   },
   "sections": {
-    "projects":   { "num": "III",   "title": "Selected work." },
+    "projects":   { "num": "II",    "title": "Selected work." },
     "sidequests": { "num": "III·b", "title": "" },
-    "principles": { "num": "IV",    "title": "How I build." },
-    "enterprise": { "num": "V",     "title": "Enterprise Work.", "collapsed": "" }
+    "principles": { "num": "III",   "title": "How I build." },
+    "enterprise": { "num": "IV",    "title": "Enterprise Work.", "collapsed": "" }
   }
 };
 
@@ -700,8 +700,8 @@ export const fallbackSitePersonal = {
   },
   hero: {
     eyebrow: "ENGINEER · BUILDER · HOT WATER ENTHUSIAST · GAMER",
-    nameFirst: 'akash',
-    nameLast: 's k.',
+    nameFirst: 'Akash',
+    nameLast: ' S K',
     title: "Senior enough to say 'it depends'.",
     thesis: "Short thoughts, fired in order. I'd rather show you than tell you.",
     stats: [
@@ -764,10 +764,10 @@ export const fallbackSitePersonal = {
   ],
   enterprise: fallbackSite.enterprise,
   sections: {
-    projects:   { num: 'III',   title: 'things i made.' },
+    projects:   { num: 'II',    title: 'things i made.' },
     sidequests: { num: 'III·b', title: 'obsessions.' },
-    principles: { num: 'IV',    title: 'rules.' },
-    enterprise: { num: 'V',     title: '9 to 5', collapsed: '15y · enterprise, decisioning, telecom · the long story' },
+    principles: { num: 'III',   title: 'rules.' },
+    enterprise: { num: 'IV',    title: '9 to 5', collapsed: '15y · enterprise, decisioning, telecom · the long story' },
   },
 };
 
