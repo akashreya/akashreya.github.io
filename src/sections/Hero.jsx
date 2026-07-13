@@ -76,6 +76,14 @@ function Ledger({ ledger }) {
   );
 }
 
+// API text wins; the structured fallback is applied only as a presentation
+// upgrade when its concatenated text is identical to the flat API string.
+function structureThesis(thesis, structured) {
+  if (typeof thesis !== 'string' || !structured || typeof structured !== 'object') return thesis;
+  const flat = `${structured.pre}${structured.strong}${structured.post}`;
+  return flat.trim() === thesis.trim() ? structured : thesis;
+}
+
 function Thesis({ value }) {
   if (value && typeof value === 'object') {
     return (
@@ -128,7 +136,7 @@ export default function Hero({ hero, liveBanner }) {
         <div className="hero__left reveal">
           <div className="hero__eye"><span className="eyebrow">{eyebrow}</span></div>
           <h1 className="hero__name">{nameFirst} <em>{nameLast}</em></h1>
-          <p className="hero__thesis">&ldquo;<Thesis value={thesis} />&rdquo;</p>
+          <p className="hero__thesis">&ldquo;<Thesis value={structureThesis(thesis, fallbackSiteRecruiter.hero.thesis)} />&rdquo;</p>
           <div className="hero__proof">
             {stats.map((stat, i) => <ProofItem key={i} stat={stat} />)}
           </div>
