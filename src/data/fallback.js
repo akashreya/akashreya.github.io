@@ -604,7 +604,11 @@ export const fallbackSite = {
     "nameFirst": "Akash",
     "nameLast": " S K",
     "title": "Staff engineer building productivity multiplier tools and decisioning systems.",
-    "thesis": "AI generates fast. Validation is where the engineering lives. Anything repeatable is AI-automatable.",
+    "thesis": {
+      "pre": "AI generates fast. ",
+      "strong": "Validation is where the engineering lives.",
+      "post": " Anything repeatable is AI-automatable."
+    },
     "stats": [
       { "value": "15+", "label": "Years in fintech",        "href": "#enterprise" },
       { "value": "7K+", "label": "Engineers shipped to",    "href": "/work/lseg-rfa" },

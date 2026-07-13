@@ -206,6 +206,7 @@ section { scroll-margin-top: 24px; }
   font-size: clamp(22px, 2.1vw, 31px); line-height: 1.32;
   color: var(--ink2); max-width: 560px; margin-top: 30px;
 }
+.hero__thesis-acc { color: var(--accent2); font-weight: 400; }
 .hero__proof { display: flex; gap: 44px; margin-top: 38px; }
 .hero__proof .stat { text-decoration: none; }
 .hero__proof a.stat:hover .stat__label { color: var(--ink2); border-bottom: 1px solid var(--accent); }
@@ -669,7 +670,7 @@ section { scroll-margin-top: 24px; }
   border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
   padding: 13px 0; overflow: hidden;
 }
-.ticker-inner { display: flex; width: max-content; animation: notes-tick 46s linear infinite; }
+.ticker-inner { display: flex; width: max-content; animation: notes-tick 120s linear infinite; }
 .ti {
   font-family: var(--font-body); font-style: italic; font-size: 15.5px;
   line-height: 1; color: var(--ink2); white-space: nowrap;

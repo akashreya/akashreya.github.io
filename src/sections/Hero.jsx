@@ -76,6 +76,19 @@ function Ledger({ ledger }) {
   );
 }
 
+function Thesis({ value }) {
+  if (value && typeof value === 'object') {
+    return (
+      <>
+        {value.pre}
+        <strong className="hero__thesis-acc">{value.strong}</strong>
+        {value.post}
+      </>
+    );
+  }
+  return value ?? null;
+}
+
 export default function Hero({ hero, liveBanner }) {
   const { mode } = useTheme();
   const { nameFirst, nameLast, eyebrow, title, thesis, stats = [], ctas = [] } = hero;
@@ -94,7 +107,7 @@ export default function Hero({ hero, liveBanner }) {
               <LetterDrop text={nameFirst} /> <LetterDrop text={nameLast} delayStart={0.35} />
             </h1>
             <div className="hero__script">{title}</div>
-            <div className="hero__sub">{thesis}</div>
+            <div className="hero__sub"><Thesis value={thesis} /></div>
             <div className="hero__proof">
               {stats.map((stat, i) => <ProofItem key={i} stat={stat} />)}
             </div>
@@ -115,7 +128,7 @@ export default function Hero({ hero, liveBanner }) {
         <div className="hero__left reveal">
           <div className="hero__eye"><span className="eyebrow">{eyebrow}</span></div>
           <h1 className="hero__name">{nameFirst} <em>{nameLast}</em></h1>
-          <p className="hero__thesis">&ldquo;{thesis}&rdquo;</p>
+          <p className="hero__thesis">&ldquo;<Thesis value={thesis} />&rdquo;</p>
           <div className="hero__proof">
             {stats.map((stat, i) => <ProofItem key={i} stat={stat} />)}
           </div>
