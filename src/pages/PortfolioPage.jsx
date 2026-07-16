@@ -11,7 +11,6 @@ import AmbientBlobs from '../components/AmbientBlobs';
 import Footprints from '../components/Footprints';
 import Chikorita from '../components/Chikorita';
 import Hero from '../sections/Hero';
-import LiveBanner from '../sections/LiveBanner';
 import Projects from '../sections/Projects';
 import SideQuests from '../sections/SideQuests';
 import Principles from '../sections/Principles';
@@ -37,8 +36,7 @@ export default function PortfolioPage() {
       <Footprints />
       <Chikorita />
       <TopMark brand={resolved.brand} />
-      <Hero hero={resolved.hero} />
-      <LiveBanner liveBanner={resolved.liveBanner} />
+      <Hero hero={resolved.hero} liveBanner={resolved.liveBanner} />
       <Projects projects={projects} sections={resolved.sections} />
       <SideQuests sections={resolved.sections} />
       <Principles principles={resolved.principles} sections={resolved.sections} />
