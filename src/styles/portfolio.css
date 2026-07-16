@@ -253,6 +253,54 @@ section { scroll-margin-top: 24px; }
 .term__val a { border-bottom: 1px dashed var(--line); }
 .term__val a:hover { border-bottom-color: var(--accent); }
 
+/* ── Recruiter hero boot (plays once per mode-entry; static under reduced motion) ── */
+
+.typeset > span { display: inline-block; white-space: pre; }
+
+/* the h1 otherwise carries the unreset UA margin-bottom (0.67em ≈ 62px at 92px);
+   replace it with designed space now that the rule marks the seam */
+[data-mode="recruiter"] .hero__name { margin-bottom: 34px; }
+[data-mode="recruiter"] .hero__thesis { margin-top: 0; }
+
+/* thesis rule — extends the eyebrow's dash grammar down the column */
+.hero__thesis::before {
+  content: ""; display: block;
+  width: 64px; height: 1px; background: var(--accent);
+  margin-bottom: 20px;
+  transform-origin: left;
+}
+
+.stat__roll { display: block; height: 1em; overflow: hidden; }
+.stat__roll-in { display: flex; flex-direction: column; }
+.stat__roll-in > span { height: 1em; }
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mode="recruiter"] .typeset > span {
+    /* per-letter delay comes from the inline style Typeset.jsx sets */
+    animation: typeset 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .hero__thesis::before { animation: rule-draw 0.5s ease-out 0.5s backwards; }
+  /* frames are [final, n-1, n-2]; the roll slides up from the oldest and
+     lands on the natural resting position (final frame) — no fill needed */
+  [data-mode="recruiter"] .stat__roll-in {
+    animation: stat-roll 0.4s steps(3, jump-none) 0.6s backwards;
+  }
+  .term__head { animation: term-stream 0.3s ease-out 0.1s backwards; }
+  .term__main { animation: term-stream 0.35s ease-out 0.3s backwards; }
+  .term__row  { animation: term-stream 0.3s ease-out backwards; }
+  .term__row:nth-child(1) { animation-delay: 0.55s; }
+  .term__row:nth-child(2) { animation-delay: 0.7s; }
+  .term__row:nth-child(3) { animation-delay: 0.85s; }
+}
+@keyframes typeset {
+  from { opacity: 0; filter: blur(8px); transform: translateY(6px); }
+}
+@keyframes rule-draw { from { transform: scaleX(0); } }
+@keyframes stat-roll { from { transform: translateY(-2em); } }
+@keyframes term-stream {
+  from { opacity: 0; transform: translateY(5px); }
+}
+
 /* personal hero */
 [data-mode="personal"] .hero__eye::before { display: none; }
 .hero__sec { color: var(--accent); font-family: var(--font-body); font-size: 15px; }

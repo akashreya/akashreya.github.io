@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
 import LetterDrop from '../components/LetterDrop';
+import Typeset from '../components/Typeset';
 import HeroTerminal from './HeroTerminal';
 import HeroTicker from './HeroTicker';
 import { fallbackSiteRecruiter, fallbackSitePersonal } from '../data/fallback';
@@ -18,10 +19,31 @@ function handleCtaClick(e, href) {
   }
 }
 
-function ProofItem({ stat }) {
+// Odometer frames for the boot roll: two "approaching" values ahead of the real
+// one, derived from the first digit run so any API-served string degrades to a
+// static value rather than breaking. Final frame is first — that's the resting
+// state when animations are off (reduced motion) or unsupported.
+function rollFrames(value) {
+  if (typeof value !== 'string') return null;
+  const m = value.match(/^([^0-9]*)(\d+)(.*)$/);
+  if (!m) return null;
+  const n = parseInt(m[2], 10);
+  if (n < 2) return null;
+  return [value, `${m[1]}${n - 1}${m[3]}`, `${m[1]}${n - 2}${m[3]}`];
+}
+
+function ProofItem({ stat, roll = false }) {
+  const frames = roll ? rollFrames(stat.value) : null;
+  const value = frames ? (
+    <span className="stat__roll" aria-label={stat.value}>
+      <span className="stat__roll-in" aria-hidden="true">
+        {frames.map((f, i) => <span key={i}>{f}</span>)}
+      </span>
+    </span>
+  ) : stat.value;
   const inner = (
     <>
-      <div className="stat__value">{stat.value}</div>
+      <div className="stat__value">{value}</div>
       <div className="stat__label">{stat.label}</div>
     </>
   );
@@ -135,10 +157,10 @@ export default function Hero({ hero, liveBanner }) {
       <div className="hero__cols">
         <div className="hero__left reveal">
           <div className="hero__eye"><span className="eyebrow">{eyebrow}</span></div>
-          <h1 className="hero__name">{nameFirst} <em>{nameLast}</em></h1>
+          <h1 className="hero__name"><Typeset text={nameFirst || ''} /> <em><Typeset text={(nameLast || '').trim()} delayStart={0.3} /></em></h1>
           <p className="hero__thesis">&ldquo;<Thesis value={structureThesis(thesis, fallbackSiteRecruiter.hero.thesis)} />&rdquo;</p>
           <div className="hero__proof">
-            {stats.map((stat, i) => <ProofItem key={i} stat={stat} />)}
+            {stats.map((stat, i) => <ProofItem key={i} stat={stat} roll />)}
           </div>
           <Ctas ctas={ctas} />
         </div>
