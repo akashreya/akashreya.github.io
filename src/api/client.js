@@ -96,8 +96,73 @@ function deepResolveVoice(node, mode) {
   return node;
 }
 
+// API_HANDOVER_v3.2: the pre-v3.2 shape (six fixed top-level fields, still what
+// fallback.js and any un-migrated backend row use) mapped onto the v3.2 sections[]
+// discriminated-union shape, so the renderer only ever has to know one shape.
+const LEGACY_SECTION_MAP = [
+  { key: 'problem', type: 'prose', num: '01' },
+  { key: 'architecture', type: 'diagram', num: '02' },
+  { key: 'decisions', type: 'decisions', num: '03' },
+  { key: 'process', type: 'timeline', num: '04' },
+  { key: 'tradeoffs', type: 'tradeoffs', num: '05' },
+  { key: 'outcome', type: 'prose', num: '06' },
+];
+
+function synthesizeSections(data) {
+  const sections = [];
+  for (const { key, type, num } of LEGACY_SECTION_MAP) {
+    const src = data[key];
+    if (!src) continue;
+    const id = key;
+    if (type === 'prose') {
+      sections.push({ id, type, num, title: src.title, body: src.body });
+    } else if (type === 'diagram') {
+      sections.push({ id, type, num, title: src.title, intro: src.intro, diagram: src.diagram, outro: src.outro });
+    } else if (type === 'decisions') {
+      sections.push({
+        id, type, num,
+        title: src.title,
+        choiceLabel: 'Choice',
+        alternativesLabel: 'Alternatives',
+        reasoningLabel: 'Reasoning',
+        items: src.items ?? [],
+      });
+    } else if (type === 'timeline') {
+      sections.push({ id, type, num, title: src.title, phases: src.phases ?? [] });
+    } else if (type === 'tradeoffs') {
+      sections.push({
+        id, type, num,
+        title: src.title || 'Trade-offs.',
+        gainedLabel: 'What we gained',
+        gaveUpLabel: 'What we gave up',
+        gained: src.gained,
+        gaveUp: src.gaveUp,
+      });
+    }
+  }
+  return sections;
+}
+
+function synthesizeNav(sections) {
+  return sections.map(s => ({ id: s.id, num: s.num, name: s.title, target: s.id }));
+}
+
+// Collapses the v3.2 payload (nav + sections[], plus the temporary legacy mirror)
+// or a pre-v3.2 payload (six fixed fields, e.g. fallback.js) onto one canonical
+// shape: { slug, overview, metrics, nav, sections, links }. The six mirrored
+// fields are dropped here — never carried past this point — so nothing downstream
+// can accidentally read them; that's what makes it safe to tell the backend the
+// mirror is unread (API_HANDOVER_v3.2 migration step 3).
+function upgradeCaseStudy(data) {
+  if (!data) return data;
+  const hasSections = Array.isArray(data.sections) && data.sections.length > 0;
+  const sections = hasSections ? data.sections : synthesizeSections(data);
+  const nav = Array.isArray(data.nav) && data.nav.length > 0 ? data.nav : synthesizeNav(sections);
+  return { slug: data.slug, overview: data.overview, metrics: data.metrics, nav, sections, links: data.links };
+}
+
 function normalizeCaseStudy(data, mode) {
-  return data ? deepResolveVoice(data, mode) : data;
+  return data ? upgradeCaseStudy(deepResolveVoice(data, mode)) : data;
 }
 
 export async function fetchCaseStudy(slug, mode = 'recruiter') {
@@ -105,8 +170,9 @@ export async function fetchCaseStudy(slug, mode = 'recruiter') {
     return await withCache(`case:${slug}:${mode}`, TTL_CLICK, async () => {
       try {
         const res = await axiosInstance.get(`/api/projects/${slug}`, { withCredentials: false });
-        // raw is the untouched API payload (voiced wrappers intact) — kept separately from the
-        // voice-resolved `data` so consumers like ServiceInspector can show the real response.
+        // raw is the untouched API payload (voiced wrappers, legacy mirror, all intact) — kept
+        // separately from the voice-resolved+upgraded `data` so ServiceInspector can show the
+        // real response while the renderer only ever sees the canonical nav+sections shape.
         return { data: normalizeCaseStudy(res.data, mode), raw: res.data, notFound: false };
       } catch (err) {
         if (err.response?.status === 404) return { data: null, raw: null, notFound: true };
@@ -117,7 +183,7 @@ export async function fetchCaseStudy(slug, mode = 'recruiter') {
     console.warn(`GET /api/projects/${slug} failed, using fallback`);
     const fallback = fallbackCaseStudies[slug];
     // raw stays null on fallback — it isn't a real API response, so callers must not present it as one.
-    return { data: fallback ?? null, raw: null, notFound: !fallback };
+    return { data: normalizeCaseStudy(fallback, mode), raw: null, notFound: !fallback };
   }
 }
 

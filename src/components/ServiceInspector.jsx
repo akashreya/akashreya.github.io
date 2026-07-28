@@ -23,7 +23,11 @@ function renderValue(v, depth) {
     const keys = Object.keys(v);
     if (keys.length === 0) return '<span class="j-p">{}</span>';
     const inner = keys.map(k => {
-      const line = `${pad}  <span class="j-k" data-key="${k}">"${k}"</span><span class="j-p">:</span> ${renderValue(v[k], depth + 1)}`;
+      // API_HANDOVER_v3.2: sections live nested in sections[] rather than as top-level keys, so a
+      // section is no longer identifiable by its JSON key name — it's identifiable by its own "id"
+      // field. Tag that field's line so hover-linking can key off it instead (see keyMap usage below).
+      const sectionAttr = (k === 'id' && typeof v[k] === 'string') ? ` data-section-id="${v[k]}"` : '';
+      const line = `${pad}  <span class="j-k" data-key="${k}"${sectionAttr}>"${k}"</span><span class="j-p">:</span> ${renderValue(v[k], depth + 1)}`;
       const cls = isNoteKey(k) ? 'j-line is-note' : 'j-line';
       return `<span class="${cls}">${line}</span>`;
     }).join('<span class="j-p">,</span>\n');
@@ -57,27 +61,38 @@ export default function ServiceInspector({
 
   useEffect(() => {
     if (!bodyRef.current) return;
-    const keyEls = bodyRef.current.querySelectorAll('.j-k[data-key]');
     const cleanups = [];
-    keyEls.forEach(kEl => {
-      const k = kEl.getAttribute('data-key');
-      const targetId = keyMap[k];
-      if (!targetId) return;
+
+    const bind = (el, targetId, sourceKey) => {
       const sect = document.getElementById(targetId);
       if (!sect) return;
-      sect.setAttribute('data-source-key', k);
-      const enter = () => { kEl.classList.add('is-hot'); sect.classList.add('ins-highlight'); };
-      const leave = () => { kEl.classList.remove('is-hot'); sect.classList.remove('ins-highlight'); };
+      sect.setAttribute('data-source-key', sourceKey);
+      const enter = () => { el.classList.add('is-hot'); sect.classList.add('ins-highlight'); };
+      const leave = () => { el.classList.remove('is-hot'); sect.classList.remove('ins-highlight'); };
       const click = (e) => { e.stopPropagation(); sect.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-      kEl.addEventListener('mouseenter', enter);
-      kEl.addEventListener('mouseleave', leave);
-      kEl.addEventListener('click', click);
+      el.addEventListener('mouseenter', enter);
+      el.addEventListener('mouseleave', leave);
+      el.addEventListener('click', click);
       cleanups.push(() => {
-        kEl.removeEventListener('mouseenter', enter);
-        kEl.removeEventListener('mouseleave', leave);
-        kEl.removeEventListener('click', click);
+        el.removeEventListener('mouseenter', enter);
+        el.removeEventListener('mouseleave', leave);
+        el.removeEventListener('click', click);
       });
+    };
+
+    // Top-level keys (overview, metrics) — explicit caller-provided map.
+    bodyRef.current.querySelectorAll('.j-k[data-key]').forEach(kEl => {
+      const targetId = keyMap[kEl.getAttribute('data-key')];
+      if (targetId) bind(kEl, targetId, kEl.getAttribute('data-key'));
     });
+
+    // Section entries nested in sections[] — matched by their own "id" value (data-section-id,
+    // tagged in renderValue) rather than a top-level key, since v3.2 moved them into an array.
+    bodyRef.current.querySelectorAll('.j-k[data-section-id]').forEach(kEl => {
+      const targetId = kEl.getAttribute('data-section-id');
+      bind(kEl, targetId, targetId);
+    });
+
     return () => cleanups.forEach(fn => fn());
   }, [keyMap, isOpen]);
 

@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { fetchCaseStudy } from '../api/client';
 import { useReveal } from '../hooks/useReveal';
 import { useTheme } from '../theme/ThemeProvider';
@@ -8,17 +8,12 @@ import ModeTransition from '../components/ModeTransition';
 import ThemeHint from '../components/ThemeHint';
 import ServiceInspector from '../components/ServiceInspector';
 import PokeTypeAtmosphere from '../components/PokeTypeAtmosphere';
+import CaseStudySection, { romanize } from '../components/CaseStudySection';
 
-const SECTIONS = [
-  { num: 'I',   label: 'Overview',     target: 'overview' },
-  { num: 'II',  label: 'Problem',      target: 'problem' },
-  { num: 'III', label: 'Architecture', target: 'architecture' },
-  { num: 'IV',  label: 'Decisions',    target: 'decisions' },
-  { num: 'V',   label: 'Process',      target: 'process' },
-  { num: 'VI',  label: 'Outcome',      target: 'outcome' },
-];
-
-const SECTION_IDS = SECTIONS.map(s => s.target);
+// The Overview hero + metrics strip aren't part of study.nav[mode] (API_HANDOVER_v3.2 — nav only
+// indexes sections[]), so this synthetic entry is prepended to give the navpill a way back to the
+// top of the page.
+const OVERVIEW_PILL = { id: 'overview', num: null, name: 'Overview', target: 'overview' };
 
 const TYPE_PAIRS = {
   poketopia: {
@@ -67,7 +62,13 @@ export default function CaseStudyPage() {
   const [rawStudy, setRawStudy] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
-  const activeSection = useActiveSectionSpy(SECTION_IDS);
+  // nav[mode] is the single source of truth for pills, order, and per-voice section visibility
+  // (API_HANDOVER_v3.2 "nav-as-index rule") — Overview is synthetic since it isn't a nav entry.
+  const pills = useMemo(() => [OVERVIEW_PILL, ...(study?.nav ?? [])], [study]);
+  const ids = useMemo(() => pills.map(p => p.target), [pills]);
+  const sectionsById = useMemo(() => new Map((study?.sections ?? []).map(s => [s.id, s])), [study]);
+
+  const activeSection = useActiveSectionSpy(ids);
 
   useReveal(study);
 
@@ -162,125 +163,20 @@ export default function CaseStudyPage() {
           </div>
         </section>
 
-        <section
-          id="problem"
-          className={'cs-section reveal' + (typePairs.problem ? ' t-section' : '')}
-          {...(typePairs.problem ? { 'data-type-pair': typePairs.problem } : {})}
-        >
-          <div className="cs-section__head">
-            <h2 className="cs-section__title">
-              {typePairs.problem && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.problem.title}
-            </h2>
-            <span className="cs-section__num">§ II</span>
-          </div>
-          <div className="cs-prose" dangerouslySetInnerHTML={{ __html: study.problem.body }} />
-        </section>
+        {(study.nav ?? []).map(item => (
+          <CaseStudySection
+            key={item.target}
+            item={item}
+            section={sectionsById.get(item.target)}
+            typePair={typePairs[item.target]}
+          />
+        ))}
 
-        <section
-          id="architecture"
-          className={'cs-section reveal' + (typePairs.architecture ? ' t-section' : '')}
-          {...(typePairs.architecture ? { 'data-type-pair': typePairs.architecture } : {})}
-        >
-          <div className="cs-section__head">
-            <h2 className="cs-section__title">
-              {typePairs.architecture && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.architecture.title}
-            </h2>
-            <span className="cs-section__num">§ III</span>
-          </div>
-          <div className="cs-prose" dangerouslySetInnerHTML={{ __html: study.architecture.intro }} />
-          <pre className="cs-ascii">{study.architecture.diagram}</pre>
-          <div className="cs-prose" dangerouslySetInnerHTML={{ __html: study.architecture.outro }} />
-        </section>
-
-        <section
-          id="decisions"
-          className={'cs-section reveal' + (typePairs.decisions ? ' t-section' : '')}
-          {...(typePairs.decisions ? { 'data-type-pair': typePairs.decisions } : {})}
-        >
-          <div className="cs-section__head">
-            <h2 className="cs-section__title">
-              {typePairs.decisions && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.decisions?.title}
-            </h2>
-            <span className="cs-section__num">§ IV</span>
-          </div>
-          <div className="cs-decisions">
-            {(study.decisions?.items ?? []).map((d, i) => (
-              <div key={i} className="cs-decision">
-                <div>
-                  <div className="cs-decision__choice">{d.choice}</div>
-                  <div className="cs-decision__alts">over {d.alternatives}</div>
-                </div>
-                <div className="cs-decision__why">{d.reasoning}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section
-          id="process"
-          className={'cs-section reveal' + (typePairs.process ? ' t-section' : '')}
-          {...(typePairs.process ? { 'data-type-pair': typePairs.process } : {})}
-        >
-          <div className="cs-section__head">
-            <h2 className="cs-section__title">
-              {typePairs.process && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.process?.title}
-            </h2>
-            <span className="cs-section__num">§ V</span>
-          </div>
-          <div className="cs-process">
-            {(study.process?.phases ?? []).map((ph, i) => (
-              <div key={i} className="cs-phase">
-                <div className="cs-phase__date">{ph.date}</div>
-                <div>
-                  <h3 className="cs-phase__name">{ph.name}</h3>
-                  <div className="cs-phase__body">{ph.body}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {study.tradeoffs && (
-          <section className="cs-section reveal">
-            <div className="cs-section__head">
-              <h2 className="cs-section__title">Trade-offs</h2>
-            </div>
-            <div className="cs-tradeoffs">
-              <div className="cs-tradeoff">
-                <div className="cs-tradeoff__l">What we gained</div>
-                <div className="cs-tradeoff__b">{study.tradeoffs.gained}</div>
-              </div>
-              <div className="cs-tradeoff">
-                <div className="cs-tradeoff__l">What we gave up</div>
-                <div className="cs-tradeoff__b">{study.tradeoffs.gaveUp}</div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section
-          id="outcome"
-          className={'cs-section reveal' + (typePairs.outcome ? ' t-section' : '')}
-          {...(typePairs.outcome ? { 'data-type-pair': typePairs.outcome } : {})}
-        >
-          <div className="cs-section__head">
-            <h2 className="cs-section__title">
-              {typePairs.outcome && <span className="t-dots"><span className="a"/><span className="b"/></span>}
-              {study.outcome.title}
-            </h2>
-            <span className="cs-section__num">§ VI</span>
-          </div>
-          <div className="cs-outcome-card cs-prose" dangerouslySetInnerHTML={{ __html: study.outcome.body }} />
-          <div className="cs-links">
-            {(study.links ?? []).map((link, i) => (
-              <a key={i} href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
-            ))}
-          </div>
-        </section>
+        <div className="cs-links">
+          {(study.links ?? []).map((link, i) => (
+            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
+          ))}
+        </div>
 
         <div className="cs-foot">
           <Link to="/#projects">← Back to projects</Link>
@@ -289,14 +185,14 @@ export default function CaseStudyPage() {
       </main>
 
       <nav className="navpill" aria-label="Case-study sections">
-        {SECTIONS.map(item => (
+        {pills.map(item => (
           <button
             key={item.target}
             className={'navpill__item' + (activeSection === item.target ? ' active' : '')}
             onClick={() => document.getElementById(item.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           >
-            <span className="navpill__num">{item.num}</span>
-            <span className="label">{item.label}</span>
+            {item.num != null && <span className="navpill__num">{romanize(item.num)}</span>}
+            <span className="label">{item.name}</span>
           </button>
         ))}
         <span className="navpill__sep" />
@@ -321,13 +217,11 @@ export default function CaseStudyPage() {
           endpoint={`/api/v1/projects/${slug}`}
           statusMs={12}
           keyMap={{
-            overview:     'overview',
-            metrics:      'metrics-section',
-            problem:      'problem',
-            architecture: 'architecture',
-            decisions:    'decisions',
-            process:      'process',
-            outcome:      'outcome',
+            overview: 'overview',
+            metrics:  'metrics-section',
+            // Individual sections are nested inside sections[] under v3.2, so they're no longer
+            // reachable by top-level key — ServiceInspector links those by each entry's own "id"
+            // field instead (see data-section-id wiring in ServiceInspector.jsx).
           }}
           footer={`GET /api/v1/projects/${slug} · the same panel we showed the judges.`}
         />
