@@ -124,7 +124,7 @@ paraphrase it. `PortfolioPage` fans `resolveVoice(site, mode)` out to `TopMark`,
 
 ## 3. Design/ map
 
-`Design/` is untracked in git (local only).
+Only the four v3 handover specs are tracked in git. Everything else in `Design/` is gitignored and local only.
 
 | Path | Status |
 |---|---|
@@ -132,7 +132,7 @@ paraphrase it. `PortfolioPage` fans `resolveVoice(site, mode)` out to `TopMark`,
 | `API_HANDOVER_v3.1.md` | Addendum: `sections` node on `/api/site`, principle item titles |
 | `API_HANDOVER_v3.1_HERO.md` | Addendum: hero redesign fields (terminal, ledger) |
 | `API_HANDOVER_v3.2_CASE_STUDY.md` | Current case-study spec; supersedes v3 §3 |
-| `API_HANDOVER.md` | v2 spec, superseded. Never cite it. |
+| `API_HANDOVER.md` | v2 spec, superseded, local only. Never cite it. |
 | `Ds_v2/`, `Portfolio DS-handoff.zip` | v2 static design-system prototype. Reference only, not the running app |
 | `chikorita-frames/`, `chikorita-frames-handover.md` | Source art and generation brief for Chikorita frames (served from the CDN, not from here) |
 

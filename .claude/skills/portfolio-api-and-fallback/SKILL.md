@@ -72,7 +72,7 @@ already points there), reproduce with real payloads in DevTools. A console showi
 Specs: `Design/API_HANDOVER_v3.md` (site, projects, mentions, sidequests, ticker),
 `API_HANDOVER_v3.1.md` (site `sections`), `API_HANDOVER_v3.1_HERO.md` (hero),
 `API_HANDOVER_v3.2_CASE_STUDY.md` (case studies; supersedes v3 §3). `API_HANDOVER.md` is v2
-and superseded. `Design/` is untracked.
+and superseded (local only, gitignored).
 
 **`/api/site`** (singleton). Live serves the per-field ("v2") shape: top-level keys `brand`,
 `hero`, `liveBanner`, `principles`, `enterprise`, `nav`, `contact`, `sections`.
