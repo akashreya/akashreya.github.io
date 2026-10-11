@@ -37,7 +37,7 @@ React 19 + Vite SPA on GitHub Pages, React Router v7 with three routes: `/` (Por
 
 `https://projects.akashreya.space` is the content admin UI, not the API.
 
-Handover specs (in `Design/`, untracked): `API_HANDOVER_v3.md` is the base; `API_HANDOVER_v3.1.md` (site section titles) and `API_HANDOVER_v3.1_HERO.md` (hero) extend it; `API_HANDOVER_v3.2_CASE_STUDY.md` supersedes v3 for case studies. `API_HANDOVER.md` is v2 and superseded.
+Handover specs (in `Design/`): `API_HANDOVER_v3.md` is the base; `API_HANDOVER_v3.1.md` (site section titles) and `API_HANDOVER_v3.1_HERO.md` (hero) extend it; `API_HANDOVER_v3.2_CASE_STUDY.md` supersedes v3 for case studies. `API_HANDOVER.md` is v2 and superseded.
 
 ## Commands
 

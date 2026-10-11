@@ -159,3 +159,8 @@ test-*.png
 !.claude/skills/
 .playwright-mcp/
 tests/
+
+# Design/: only the v3 API handover specs are tracked
+Design/*
+!Design/API_HANDOVER_v3*.md
+docs/superpowers/
