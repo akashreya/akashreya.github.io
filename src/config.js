@@ -1,3 +1,3 @@
-// Feature switch: personal mode is built but incomplete backend data.
-// Flip to true when /api/sidequests + /api/ticker are live and seeded.
+// Kill switch for personal mode. Both modes are live on akashreya.space.
+// false forces recruiter (ignores ?mode= and the saved mode) and M toggles tone instead of mode.
 export const PERSONAL_MODE_ENABLED = true;

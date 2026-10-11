@@ -1,376 +1,235 @@
 ---
 name: portfolio-api-and-fallback
 description: >
-  The API integration layer of akashreya-portfolio: endpoint catalog (all five live and seeded
-  as of 2026-07-11, with per-endpoint shapes and quirks), pickVoice/deepResolveVoice semantics,
-  v2-vs-v3 site shape detection, TTL cache behavior, fallback.js sync discipline, and backend
-  topology (projectsapi vs admin UI; prod CORS 403s localhost). Load when: touching
-  src/api/client.js or src/api/axios.js; adding/changing an API call; content looks
-  wrong/stale/mixed-voice; deciding whether to edit fallback.js or seed the backend;
-  "[object Object]" or React error #31 renders; sidequests or ticker data questions; verifying
-  what the live backend actually serves; setting VITE_API_URL; CORS questions. Keywords: voiced
-  field, pickVoice, resolveVoice, deepResolveVoice, TTL cache, fallback, projectsapi, admin UI,
-  seed data, API handover.
+  Owns the API integration layer of akashreya-portfolio: the five-endpoint catalog with
+  per-endpoint shapes, the v3.2 case-study shape (nav{recruiter,personal} + sections[],
+  upgradeCaseStudy, LEGACY_SECTION_MAP, the raw payload for ServiceInspector), voice resolution
+  (pickVoice, deepResolveVoice, resolveVoice v2/v3 site detection, /api/site sections), the TTL
+  cache, the fallback.js exports and sync rule, and backend topology (projectsapi vs admin UI,
+  prod CORS 403 for localhost). Load when touching src/api/client.js, src/api/axios.js,
+  src/data/fallback.js or CaseStudySection.jsx; adding or changing an API call; content looks
+  stale, wrong or mixed-voice; deciding between editing fallback.js and editing backend content;
+  "[object Object]" or React error #31; case-study sections missing or out of order; verifying
+  what the live backend serves; CORS questions.
 ---
 
-# Portfolio API and Fallback Layer
+# Portfolio API and fallback layer
 
-Everything the frontend knows about the backend lives in two files: `src/api/axios.js`
-(25 lines, base URL + timeout) and `src/api/client.js` (155 lines, everything else).
-Static mirror of API content: `src/data/fallback.js` (955 lines). No other file in
-`src/` makes HTTP calls.
+All HTTP lives in `src/api/axios.js` (base URL, 30s timeout, no auth, no retry) and
+`src/api/client.js` (fetchers, voice resolution, cache). `src/data/fallback.js` is the static
+mirror. No other file in `src/` makes HTTP calls. Mode/tone/voice vocabulary and the
+API-with-fallback invariant: **portfolio-architecture-contract**.
 
-**Terminology — these four words WILL be confused. Fix them now:**
+## Hard rules
 
-| Term | Means | Values | Lives in |
+1. Every API payload passes through voice resolution before it reaches JSX. A voiced wrapper
+   (`{recruiter, personal}`) rendered as a React child is minified error #31 in prod.
+2. Every fetcher returns usable data when the API is down, empty or unreachable. Arrays treat
+   `[]` as failure and fall back.
+3. Content's source of truth is the backend, edited through the admin UI. `fallback.js`
+   mirrors it for offline rendering; editing only `fallback.js` changes nothing for prod
+   users with the API up.
+4. When backend content changes, mirror it into the matching fallback export in the same
+   change set. Fallback fields stay flat (pre-resolved per voice), never voiced wrappers.
+5. Debug prod data bugs against a local backend first, not the live API (see Topology).
+
+## Topology
+
+| Host / path | What it is |
+|---|---|
+| `https://projectsapi.akashreya.space` | Production API. The only valid prod `VITE_API_URL`. |
+| `https://projects.akashreya.space` | Admin UI for content entry. Returns HTML; never point the frontend here. |
+| `E:\Work\Code\GitHub\projectservice` | Backend source (Spring Boot, SQLite). Read-only from this repo. |
+
+`VITE_API_URL` unset: `axios.js` `getApiUrl` warns `VITE_API_URL not set, using fallback` and
+uses `http://localhost:8080`. `.env.local` sets the same URL. Env wiring and CI values:
+**portfolio-build-run-deploy**.
+
+**CORS.** Prod allows `https://akashreya.space`; its list comes from the `CORS_ALLOWED_ORIGINS`
+env var in the backend's prod profile (`GlobalCorsConfig`). The local dev profile allows
+`http://localhost:5173`. Against prod, a request carrying
+`Origin: http://localhost:5173` gets **403** (the browser may surface it as 503). So a local
+dev server pointed at the prod API silently renders fallbacks for everything. curl without an
+Origin header succeeds, which is why the API "works from the shell but not the browser". For
+real data in dev, run the local backend. CORS changes are backend-side in `projectservice`.
+Every frontend GET sends `withCredentials: false`.
+
+**Prod-bug protocol.** Run `projectservice` locally on 8080, `npm run dev` (`.env.local`
+already points there), reproduce with real payloads in DevTools. A console showing
+`GET /api/... failed, using fallback` means you are looking at fallback data, not API shapes.
+
+## Endpoints
+
+| Endpoint | Fetcher | Cache key / TTL | On failure |
 |---|---|---|---|
-| **mode** | Which persona the site presents | `recruiter`, `personal` | `useTheme().mode`, `data-mode` on `<html>` |
-| **voice** | Which copy variant of a *content field* is shown | the `recruiter`/`personal` keys inside a voiced field | API payloads + `client.js` resolution |
-| **voiced field** | A JSON value shaped `{"recruiter": X, "personal": Y}` instead of a flat value | — | API responses |
-| **tone** | Light/dark color scheme | `light`, `dark` | `useTheme().tone`, `data-tone` |
+| `GET /api/site` | `fetchSite()` | `site` / 10 min | returns `null`; `resolveVoice` supplies the fallback |
+| `GET /api/projects` | `fetchProjects()` | `projects` / 10 min | `fallbackProjects` |
+| `GET /api/projects/:slug` | `fetchCaseStudy(slug, mode)` | `case:${slug}:${mode}` / 5 min | `fallbackCaseStudies[slug]`, else not-found |
+| `GET /api/mentions` | `fetchMentions()` | `mentions` / 5 min | `fallbackMentions` |
+| `GET /api/sidequests` | `fetchSideQuests()` | `sidequests` / 10 min | `fallbackSideQuests` |
+| `GET /api/ticker` | `fetchTicker()` | `ticker` / 10 min | `fallbackTicker` |
 
-"Theme" is not a real axis in v3 — CLAUDE.md's "crimson/glass themes" description is stale.
-Mode selects voice. Full axis rationale: see **portfolio-architecture-contract**.
+Specs: `Design/API_HANDOVER_v3.md` (site, projects, mentions, sidequests, ticker),
+`API_HANDOVER_v3.1.md` (site `sections`), `API_HANDOVER_v3.1_HERO.md` (hero),
+`API_HANDOVER_v3.2_CASE_STUDY.md` (case studies; supersedes v3 §3). `API_HANDOVER.md` is v2
+and superseded. `Design/` is untracked.
 
-## When NOT to use this skill
-
-- Diagnosing a rendering crash or blank section → **portfolio-debugging-playbook** (it owns the symptom→triage table; this skill owns the mechanics it references).
-- Deploy pipeline, GH Actions, env-from-scratch setup → **portfolio-build-run-deploy**.
-- Theme tokens, where hardcoded copy lives, Design/ directory map → **portfolio-theme-and-content**.
-- Seeding sidequests/ticker as part of the personal-mode launch → **portfolio-personal-mode-campaign** (it owns the seeding *protocol*; this skill owns the endpoint *facts*).
-- Why the architecture is API-with-fallback at all → **portfolio-architecture-contract**.
-
-## Backend topology
-
-| Host / path | What it is | Notes |
-|---|---|---|
-| `https://projectsapi.akashreya.space` | **The production API.** | This is what `VITE_API_URL` should point at in prod. |
-| `https://projects.akashreya.space` | **Admin UI** for content entry. NOT an API endpoint. | Never point the frontend here. |
-| `E:\Work\Code\GitHub\projectservice` | Backend source (Spring-side repo "ProjectService"). | Pointer only — backend internals are out of scope for this skill library. DB is SQLite. |
-
-**FIXED 2026-07-11** (was: "known latent misconfiguration, document don't fix"):
-`.github/workflows/deploy.yml:36` used to set
-`VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}` — the
-fallback was the *admin UI*, not the API. Owner's call once asked directly: "doesn't make
-sense at all to fall back on a UI." Now falls back to `https://projectsapi.akashreya.space`
-(the real API) instead. Pipeline details: see **portfolio-build-run-deploy**.
-
-**Prod-debugging protocol:** never debug a prod data bug against the live backend. Run the
-backend locally from `E:\Work\Code\GitHub\projectservice`, point the frontend at it, reproduce
-first:
-
-```powershell
-# .env.local already contains VITE_API_URL=http://localhost:8080
-# start backend in projectservice (its own README/run config), then:
-npm run dev
-```
-
-### VITE_API_URL resolution
-
-`src/api/axios.js:3-10`: reads `import.meta.env.VITE_API_URL`; if unset, warns and falls back
-to `http://localhost:8080`. Single axios instance, 30s timeout, no retry, no auth.
-
-| File | Value | Status |
-|---|---|---|
-| `.env.local` | `http://localhost:8080` | Dev source of truth (UTF-8, wins over `.env`) |
-| `.env` | `http://localhost:8080` | UTF-16 LE encoded — do not rely on it, `.env.local` covers dev |
-| `.env.production` | **deleted 2026-07-11** (was tracked with placeholder `https://your-production-api.com`, UTF-16 LE) | CI never read this file — it sets `VITE_API_URL` as a process env var, which always wins over `.env.*`. Rather than fix the file's content, it was removed entirely; `.gitignore` now also covers plain `.env.production` (previously only `.env.production.local` was listed — the gap that let this get tracked); a value-free `.env.example` is the committed template now. |
-| CI (`deploy.yml:36`) | secret, or `https://projectsapi.akashreya.space` fallback (fixed 2026-07-11, was admin UI) | See above |
-
-## Endpoint catalog
-
-Base URL below = `https://projectsapi.akashreya.space`. All frontend GETs pass
-`{ withCredentials: false }`. Status verified live 2026-07-10.
-
-### LIVE AND SEEDED (as of 2026-07-10)
-
-| Endpoint | Frontend caller | Cache key / TTL | On failure |
-|---|---|---|---|
-| `GET /api/site` | `fetchSite()` (`client.js:49`) | `site` / 10 min | returns `null`; `resolveVoice` supplies fallback |
-| `GET /api/projects` | `fetchProjects()` (`client.js:61`) | `projects` / 10 min | `fallbackProjects` |
-| `GET /api/projects/:slug` | `fetchCaseStudy(slug, mode)` (`client.js:101`) | `case:${slug}:${mode}` / 5 min | `fallbackCaseStudies[slug]` or not-found |
-| `GET /api/mentions` | `fetchMentions()` (`client.js:119`) | `mentions` / 5 min | `fallbackMentions` |
-
-**`/api/site`** — singleton. The live backend serves the **v2 per-field-wrapper shape**
-(verified 2026-07-10), not the v3 top-level split:
+**`/api/site`** (singleton). Live serves the per-field ("v2") shape: top-level keys `brand`,
+`hero`, `liveBanner`, `principles`, `enterprise`, `nav`, `contact`, `sections`.
+`brand.tagline`, `hero`, `liveBanner`, `principles` are voiced wrappers. `sections` carries
+per-section headings:
 
 ```jsonc
-{
-  "brand": { "name": "Akash S K", "mark": "A·S", "url": "akashreya.space",
-             "tagline": { "recruiter": "...", "personal": "..." } },   // voiced
-  "hero":       { "recruiter": { /* eyebrow, nameFirst, ... */ }, "personal": { ... } },
-  "liveBanner": { "recruiter": { ... }, "personal": { ... } },
-  "principles": { "recruiter": { ... }, "personal": { ... } },
-  "nav": [ { "id": "hero", "num": "01", "name": "...", "target": "#hero" }, ... ],
-  "enterprise": [ { "client": "...", "role": "...", "period": "...", "desc": "...", "tags": [] } ],
-  "contact": { "email": "...", "socials": [ { "label": "github", "href": "..." } ] }
+"sections": {
+  "projects":   { "num": "III", "title": { "recruiter": "Work .", "personal": "Things I built " } },
+  "sidequests": { "num": "IV",  "title": { "recruiter": "", "personal": "Obsessions" } },
+  "principles": { "num": "V",   "title": { ... } },
+  "enterprise": { "num": "VI",  "title": { ... }, "collapsed": { "recruiter": "", "personal": "..." } }
 }
 ```
 
-**`/api/projects`** — array of 8 (slugs: fico-cod-rto, everythingabc, poketopia,
-fico-ivr-simulator, lseg-rfa, reuters-pts, goldman-secdb, sita-dcs). Per item:
+An empty-string voice means "unseeded": `resolveSections` uses `||`, so it falls through to
+the fallback heading. No heading renders blank.
 
-```jsonc
-{ "id": 1, "slug": "fico-cod-rto", "title": "...", "kind": "WIN", "span": "WIDE",
-  "eyebrow": "...", "year": "...", "hasCaseStudy": true, "displayOrder": 1,
-  "shortDescription": { "recruiter": "...", "personal": "..." },   // voiced (live, verified)
-  "technologies": [ { "name": "..." } ], "metrics": [ ... ],
-  "githubUrl": null, "liveDemoUrl": null, "projectType": "...",
-  "images": [ ... ], "createdAt": "...", "updatedAt": "..." }
-```
+**`/api/projects`**: array. `shortDescription` is voiced. `normalizeProject` lowercases
+`kind`/`span`, maps `technologies[].name` to `tags`, and keeps `desc` raw (voiced);
+`Projects.jsx` resolves it with `pickVoice(p.desc, mode)` at render.
 
-**`/api/projects/:slug`** — case study detail. Top-level keys (live, verified):
-`slug, overview, problem, architecture, decisions, process, tradeoffs, outcome, metrics, links`.
-Some sub-fields are voiced (e.g. `overview.lede` is `{recruiter, personal}` live) — the
-handover spec limits voicing to `overview.lede`, `problem.body`, `outcome.body`, but the
-frontend deep-resolves voiced wrappers *anywhere* in the tree (`deepResolveVoice`), which is
-deliberately broader than the spec. Unknown slugs return HTTP 404.
+**`/api/projects/:slug`**: see the case-study section below. Unknown slug returns 404.
 
-**`/api/mentions`** — array of 4. Per item:
-`{ id, kind, badge, date, quote, authorName, authorRole, authorInitials, link }`.
-`kind` arrives uppercase (`"TALK"`); `normalizeMention` lowercases it. No voiced fields.
+**`/api/mentions`**: array of `{ id, kind, badge, date, quote, authorName, authorRole,
+authorInitials, link }`. `kind` arrives uppercase; `normalizeMention` lowercases it. No voiced
+fields.
 
-**`/api/sidequests`** — SEEDED 2026-07-11 (prod, via admin UI; the local dev backend may still
-be empty — `200 []`). Array of 7. Per item:
-`{ id, pos ('tl'|'tr'|'r'|'br'|'bl'|'l'|'center'), emoji, title, body, projectRef, displayOrder }`.
-Live quirks: the `emoji` field is **ignored by the frontend** (owner's call 2026-07-11: "emotes
-look childish" — the render span and its CSS were removed; a future redesign would replace, not
-restore, emotes); `projectRef` is a raw slug and only `pokemon` carries one (`"poketopia"`);
-the center node's id is `time` (NOT `craft` — the pre-wiring hardcoded id).
-Spec: `Design/API_HANDOVER_v3.md` §5.
+**`/api/sidequests`**: array of `{ id, pos, emoji, title, body, projectRef, displayOrder }`,
+`pos` one of `tl tr r br bl l center`. Sorted by `displayOrder`; `normalizeSideQuest` builds
+`proj: '→ ' + projectRef` (raw slug) or `null`. The frontend ignores `emoji` (owner decision).
+`SideQuests.jsx` derives the connector hub from `pos === 'center'`, not an id, and fetches only
+in personal mode.
 
-**`/api/ticker`** — SEEDED 2026-07-11 (same caveat). Array of 9 (not the spec's 10; displayOrder
-has a gap at 6 — harmless, frontend sorts). Per item: `{ id, text, projectRef, displayOrder }`.
-Spec: `Design/API_HANDOVER_v3.md` §6.
+**`/api/ticker`**: array of `{ id, text, projectRef, displayOrder }`. `fetchTicker` sorts by
+`displayOrder` and returns plain strings.
 
-**Frontend wiring built 2026-07-11** (was the last unwired pair): `fetchSideQuests()` and
-`fetchTicker()` in `src/api/client.js`, cloned from the `fetchProjects` pattern — TTL_LANDING
-cache, `!Array.isArray || length === 0` → throw → fallback, sort by `displayOrder`.
-`normalizeSideQuest` builds `proj: '→ ' + projectRef` (raw slug for now — owner said "I will
-correct it. you integrate for now"); `fetchTicker` returns plain strings (`.map(t => t.text)`).
-`SideQuests.jsx` fetches mode-gated (`useEffect` returns early unless personal — recruiter mode
-makes zero calls) with state seeded from `fallbackSideQuests`; `HeroTicker.jsx` fetches on mount
-(only mounted in Hero's personal branch) seeded from `fallbackTicker`. The connector hub in
-SideQuests is derived from `pos === 'center'`, not a hardcoded id.
+Sidequests and ticker are flat per spec, so their fetchers skip voice resolution. A comment
+in `client.js` marks the revisit point: if the backend voices them, route through
+`deepResolveVoice` and mode-key the cache.
 
-**The seed JSONs are now STALE**: `Design/seed_data/portfolio_v3_seed_data/json/side_quests.json`
-and `ticker.json` mirror the OLD hardcoded arrays (cards/ai/difftool nodes, `craft` center,
-10 ticker lines). The live seeded content differs (blackqueen/games/shreya nodes, `time` center,
-9 lines, edited copy). The live API is the source of truth; `fallback.js` mirrors it.
+## Case studies (v3.2 shape)
 
-Launch sequencing: see **portfolio-personal-mode-campaign**.
+Live `GET /api/projects/:slug` top-level keys: `slug, nav, overview, metrics, sections, links`,
+plus the **legacy mirror** `problem, architecture, decisions, process, tradeoffs, outcome`.
 
-### Verification commands (PowerShell, copy-paste)
+- `nav` is a voiced wrapper: `{ recruiter: [items], personal: [items] }`, item
+  `{ id, num, name, target }`. `nav[mode]` is the single source of truth for which sections
+  render, their order and pill labels. A section absent from `nav[mode]` does not render in
+  that mode (no separate hidden flag).
+- `sections[]` is the section pool. `type` is a discriminator:
 
-```powershell
-# Status + payload size per endpoint (len=2 means "[]", i.e. unseeded/empty)
-foreach ($ep in 'site','projects','mentions','sidequests','ticker') {
-  $r = Invoke-WebRequest -Uri "https://projectsapi.akashreya.space/api/$ep" -UseBasicParsing -TimeoutSec 15
-  Write-Output "$ep -> $($r.StatusCode) len=$($r.Content.Length)"
-}
+| `type` | Fields |
+|---|---|
+| `prose` | `title`, `body` (HTML) |
+| `diagram` | `title`, `intro`, `diagram` (preformatted), `outro` |
+| `decisions` | `title`, `choiceLabel`, `alternativesLabel`, `reasoningLabel`, `items[{choice, alternatives, reasoning}]` |
+| `timeline` | `title`, `phases[{date, name, body}]` |
+| `tradeoffs` | `title`, `gainedLabel`, `gaveUpLabel`, `gained`, `gaveUp` |
 
-# Which shape does /api/site serve? Top-level keys 'recruiter','personal' = v3 split;
-# 'brand','hero',... = v2 per-field wrappers (the live shape as of 2026-07-10)
-$s = Invoke-RestMethod "https://projectsapi.akashreya.space/api/site"
-$s | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name
+- Nearly every prose leaf and label in `overview`, `sections[]` and `links[].label` is voiced.
+  `metrics` and `links[].url` stay flat.
+- The legacy mirror is server-derived from `sections[]` for pre-v3.2 renderers. The frontend
+  never reads it: `upgradeCaseStudy` drops it. Once the backend removes it, nothing here
+  changes.
 
-# Is a project field voiced? (PSCustomObject with recruiter/personal = voiced)
-$p = Invoke-RestMethod "https://projectsapi.akashreya.space/api/projects"
-$p[0].shortDescription
+**Pipeline in `client.js`** (`fetchCaseStudy` → `normalizeCaseStudy`):
 
-# Case study detail + 404 behavior
-Invoke-RestMethod "https://projectsapi.akashreya.space/api/projects/fico-cod-rto" | ConvertTo-Json -Depth 2
-try { Invoke-WebRequest "https://projectsapi.akashreya.space/api/projects/nope" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__ }  # expect 404
-```
+1. `deepResolveVoice(data, mode)` unwraps every voiced node, including `nav` itself, so
+   `nav` becomes the `nav[mode]` array.
+2. `upgradeCaseStudy` returns the canonical shape `{ slug, overview, metrics, nav, sections,
+   links }`. If `sections[]` is missing or empty (pre-v3.2 payloads, and every
+   `fallbackCaseStudies` entry), `synthesizeSections` builds it from the six legacy fields via
+   `LEGACY_SECTION_MAP` (problem→prose 01, architecture→diagram 02, decisions→decisions 03,
+   process→timeline 04, tradeoffs→tradeoffs 05, outcome→prose 06), filling default labels
+   (`Choice`, `Alternatives`, `Reasoning`, `What we gained`, `What we gave up`). If `nav` is
+   missing or empty, `synthesizeNav` derives it from `sections` (name = title, target = id).
+   Every other key is dropped, including fallback's unused `_typePairs` (type pairs come from
+   `TYPE_PAIRS` in `CaseStudyPage.jsx`).
+3. The cached value is `{ data, raw, notFound }`. `raw` is the untouched API payload (voiced
+   wrappers and legacy mirror intact) for `ServiceInspector` on `fico-cod-rto`. `raw` is
+   `null` on fallback and on 404; never present fallback data as an API response.
 
-## Voice resolution — the exact rules
+**Render side.** `CaseStudyPage` prepends a synthetic Overview pill to `study.nav`, indexes
+`sections` by id, and renders one `CaseStudySection` per nav item with
+`section={sectionsById.get(item.target)}`. `CaseStudySection` switches on `section.type`;
+an unknown type or a missing target renders `null` instead of crashing, so the backend can
+add types ahead of a frontend deploy. `prose`/`diagram` HTML goes through
+`dangerouslySetInnerHTML`. The prose section with id `outcome` gets the callout card styling.
+`romanize` turns `num` into the section numeral. The effect depends on `[slug, mode]`, so a
+mode toggle re-fetches (or hits the mode-keyed cache) and re-voices.
 
-### pickVoice(field, mode) — `client.js:23-34`, not exported
+## Voice resolution
 
-```js
-if (field !== null && field !== undefined && typeof field === 'object' &&
-    !Array.isArray(field) && ('recruiter' in field || 'personal' in field)) {
-  return field[mode] ?? field.recruiter ?? field.personal;
-}
-return field;
-```
+**`pickVoice(field, mode)`** (exported): a wrapper is a non-null, non-array object with a
+`recruiter` or `personal` key (key presence, not truthiness). Returns
+`field[mode] ?? field.recruiter ?? field.personal`. Anything else passes through unchanged.
+`isVoicedWrapper` is the same predicate as a named helper.
 
-- Detection is **key presence** (`in`), not truthiness — a wrapper carrying only one voice still unwraps.
-- Fallback chain: requested mode → `recruiter` → `personal`.
-- Flat strings, arrays, and plain objects pass through unchanged (the v2 backward-compat rule).
-- `isVoicedWrapper` (`client.js:74-82`) is the identical predicate duplicated as a named helper.
+**`deepResolveVoice(node, mode)`**: recursively unwraps wrappers anywhere in a tree (arrays
+mapped, plain objects rebuilt). Used for case studies only. Side effect to know: any object
+with a `recruiter` or `personal` key is treated as a wrapper, so never use those as ordinary
+data keys.
 
-### deepResolveVoice(node, mode) — `client.js:86-95`
+**`resolveVoice(siteData, mode)`** (site, runs every render in `PortfolioPage`):
 
-Recursively unwraps voiced wrappers **anywhere** in a tree: arrays are mapped, plain objects
-rebuilt via `Object.fromEntries`, primitives pass through. Applied to case-study payloads by
-`normalizeCaseStudy` (`client.js:97-99`).
+1. Fallback is `fallbackSitePersonal` for personal, else `fallbackSiteRecruiter`.
+2. `!siteData` (failed fetch) → fallback whole.
+3. Top-level split (`siteData.recruiter && siteData.personal`) → shallow merge
+   `{ ...fallback, ...siteData[mode] }`.
+4. Otherwise (the live shape) field by field: `brand` with `tagline` picked; `hero`,
+   `liveBanner`, `principles`, `nav` via `pickVoice(...) ?? fallback`; `enterprise`,
+   `contact` flat `?? fallback`; `sections` via `resolveSections` (keys `projects`,
+   `sidequests`, `principles`, `enterprise`; `num`, `title`, `collapsed`, each `||` fallback).
 
-### WHERE resolution must happen (the React error #31 rule)
+`fetchSite` has no shape validation: an empty `{}` caches for 10 minutes and resolves to all
+fallback via branch 4.
 
-**Every API payload must pass through voice resolution before any component renders it.**
-A voiced field that reaches JSX unresolved is an object child → React throws minified
-error #31 (or renders `[object Object]`). This is exactly what the voiced-fields saga was
-(commits 86beafa → 06bd26f); `deepResolveVoice` is the fix. Triage steps for a live #31:
-see **portfolio-debugging-playbook**.
+**Where resolution happens:**
 
-The resolution points, and they differ by endpoint — know which is which:
-
-| Data | Resolved WHERE | Consequence |
+| Data | Resolved | Consequence |
 |---|---|---|
-| Site (`/api/site`) | **Per render** — `fetchSite` caches the RAW voiced payload; `PortfolioPage.jsx:24` calls `resolveVoice(site, mode)` every render | Mode toggle re-voices instantly, no refetch |
-| Case study | **At fetch time** — `deepResolveVoice` inside `fetchCaseStudy`, cache key includes mode | **FIXED 2026-07-11.** Used to not re-voice mid-page: `CaseStudyPage.jsx` effect deps were `[slug]` only, so the mode-keyed cache entry was never requested. Deps are now `[slug, mode]` — mode toggle mid-page re-fetches/re-resolves correctly. |
-| Project grid `desc` | **Per render, as of 2026-07-11** — `normalizeProject` (`client.js:10`) now keeps the raw voiced value (`desc: rawDesc`); `Projects.jsx` resolves it via the now-exported `pickVoice(p.desc, mode)` at render time, same pattern as site | **FIXED.** Was: hard-pinned to `pickVoice(raw, 'recruiter')` at fetch time, so personal voice never rendered on the grid. Confirmed live post-fix. `projects` cache key is still not mode-keyed — no longer needed since resolution is render-time, not fetch-time. |
-| Mentions | No voiced fields; only `kind` lowercased | — |
+| Site | per render; cache holds the raw voiced payload | mode toggle re-voices with no refetch |
+| Project `desc` | per render in `Projects.jsx` | `projects` cache needs no mode key |
+| Case study | at fetch time; cache key includes mode | toggle re-fetches or hits the other mode's entry |
+| Mentions, sidequests, ticker | none (flat) | no mode key needed |
 
-If you add a new fetch: run the payload through `deepResolveVoice` (or confirm the spec
-guarantees flat fields — sidequests/ticker are flat per spec AND verified live, so their
-fetchers skip voice resolution entirely; a comment in `client.js` marks the revisit point if
-the backend ever voices them) and decide render-time vs fetch-time resolution consciously —
-render-time + raw cache is the pattern that keeps mode toggles free.
+For a new fetcher: resolve through `deepResolveVoice` or confirm the spec guarantees flat
+fields, and pick render-time (raw cache, free toggles) or fetch-time (mode-keyed cache)
+deliberately.
 
-### resolveVoice(siteData, mode) — v2 vs v3 shape detection, `client.js:132-154`
+## TTL cache
 
-1. Picks fallback: `fallbackSitePersonal` if mode is personal, else `fallbackSiteRecruiter`.
-2. `!siteData` (the `null` from a failed `fetchSite`) → return fallback whole.
-3. **v3 shape** — `if (siteData.recruiter && siteData.personal)` (top-level split, truthiness
-   check): returns `{ ...fallback, ...(siteData[mode] ?? {}) }`. Shallow merge — any top-level
-   key the API voice omits comes from fallback. This matters: the v3 seed
-   `json/site.json` has **no `enterprise` key** in either voice; the merge papers over it.
-4. **v2 shape** (anything else): field-by-field —
-   `brand` spread with `tagline: pickVoice(...) ?? fallback.brand?.tagline`;
-   `hero`/`liveBanner`/`principles`/`nav` each `pickVoice(field, mode) ?? fallback.X`;
-   `enterprise`/`contact` flat with `?? fallback`.
+`withCache(key, ttlMs, producer)` over a module-level `Map`, `performance.now()` expiry.
+`TTL_LANDING` 10 min (site, projects, sidequests, ticker), `TTL_CLICK` 5 min (case study,
+mentions).
 
-**Reality check (2026-07-10): the live backend serves the v2 per-field shape**, so branch 4
-is the production path. The v3 seed `site.json` uses the top-level split (branch 3). Both
-work; do not assume one from the docs — `Design/API_HANDOVER_v3.md` §1 documents the
-per-field shape while the seed JSON is the split shape. History of the shape-detection work:
-commits 4a7f2d3, b120b40 (see **portfolio-debugging-playbook**).
+- In-memory per page load. A full reload is the only invalidation. Content looking stale for
+  5-10 minutes after a backend edit is the cache working; hard-reload.
+- Errors are not cached (the producer throws before `set`), so failures retry on the next call.
+- A 404 case study is cached: the inner catch turns it into `{ data: null, raw: null,
+  notFound: true }`, a successful result, for 5 minutes. Seeding a missing slug shows only
+  after reload or expiry.
+- No in-flight dedup: concurrent calls for one key both hit the network.
 
-Note: `fetchSite` has NO shape validation (unlike projects/mentions' non-empty-array checks).
-An empty `{}` from the API caches for 10 min and falls through to the v2 branch, resolving
-all-fallback field-by-field.
+## fallback.js exports
 
-## TTL cache — `client.js:36-47`
+| Export | Shape and notes |
+|---|---|
+| `fallbackCaseStudies` | keyed by slug; pre-v3.2 legacy shape (six fixed fields), all flat. Upgraded by `upgradeCaseStudy` at read time. |
+| `fallbackSite` / `fallbackSiteRecruiter` | same object (alias); flat recruiter site incl. `sections` |
+| `fallbackSitePersonal` | flat personal site with its own `nav` and `sections`; `enterprise` references `fallbackSite.enterprise` |
+| `fallbackProjects` | array; `desc` flat |
+| `fallbackMentions` | array |
+| `fallbackSideQuests` | normalized shape: carries the built `proj` string, no `emoji` |
+| `fallbackTicker` | plain strings in display order |
 
-```js
-const TTL_LANDING = 10 * 60 * 1000;  // site + projects grid
-const TTL_CLICK   = 5 * 60 * 1000;   // case study, mentions
-const _cache = new Map();            // key -> { value, expiresAt }  (performance.now() based)
-```
-
-| Key | TTL | Holds |
-|---|---|---|
-| `site` | 10 min | RAW (possibly voiced) site payload |
-| `projects` | 10 min | Normalized projects array (recruiter-pinned desc) |
-| `case:${slug}:${mode}` | 5 min | `{ data: resolvedStudy, notFound }` — only mode-keyed cache |
-| `mentions` | 5 min | Normalized mentions |
-| `sidequests` | 10 min | Normalized sidequests (sorted, `proj` display string built) |
-| `ticker` | 10 min | Plain string array, sorted by displayOrder |
-
-Invalidation reality:
-
-- Module-level, in-memory. **The only invalidation is a full page reload.** No API, no eviction.
-- Errors are NOT cached — the producer throws before `_cache.set`, so failures retry on next call.
-- **Exception: a 404 case study IS cached** — the inner catch in `fetchCaseStudy` converts
-  HTTP 404 to `{ data: null, notFound: true }`, a successful producer result, cached 5 min.
-- No in-flight dedup: two simultaneous calls with the same key both hit the network.
-- After editing backend content, hard-reload the tab; content appearing stale within
-  5-10 min is the cache working, not a bug.
-
-## fallback.js sync discipline
-
-`src/data/fallback.js` is the static mirror that keeps the site rendering when the API is
-down (GitHub Pages up + backend down must still look complete). Exports:
-
-| Export | Line | Notes |
-|---|---|---|
-| `fallbackCaseStudies` | 1 | Keyed by slug, 8 entries. All fields FLAT strings — no voiced wrappers. `poketopia` carries extra `_typePairs`. |
-| `fallbackSite` / `fallbackSiteRecruiter` | 595 / 680 | Same object (alias). Flat v2 shape. |
-| `fallbackSitePersonal` | 682 | **`nav`/`enterprise` gap fixed 2026-07-11** — now sets `nav: fallbackSite.nav` and `enterprise: fallbackSite.enterprise` (references the recruiter fallback, so they can't drift). Personal mode offline now renders both. Contact email still differs (by design): `hello@akashreya.space` vs recruiter's `akashakashreya@gmail.com`. |
-| `fallbackProjects` | 738 | 8 projects, matches live slugs. |
-| `fallbackMentions` | 909 | 4 mentions. |
-| `fallbackSideQuests` | ~962 | 7 nodes, mirror of the live seeded payload (2026-07-11), in NORMALIZED shape — carries the pre-built `proj` display string (`'→ poketopia'`), not raw `projectRef`; no `emoji` key (the frontend ignores that API field). Re-mirror when the owner edits the admin UI. |
-| `fallbackTicker` | ~972 | 9 plain strings in displayOrder, verbatim mirror of live (2026-07-11). |
-
-**The rules:**
-
-1. **Editing fallback.js is NEVER a substitute for seeding the backend.** Content's source of
-   truth is the backend (entered via the admin UI at `https://projects.akashreya.space`).
-   fallback.js is a mirror for offline resilience. If you only edit fallback.js, prod users
-   (API up) never see the change and the mirror silently diverges.
-2. When content changes on the backend, mirror it into the corresponding fallback export in
-   the same change set. Fallback fields stay FLAT (pre-resolved per voice via the
-   Recruiter/Personal site exports); do not put `{recruiter, personal}` wrappers in fallback.js.
-3. Verify the mirror by killing the API locally: stop the local backend (or set
-   `VITE_API_URL` to a dead port), `npm run dev`, and confirm the site renders complete.
-4. Adding a project or case study to the backend without adding its fallback entry means
-   that content vanishes offline (and unknown case-study slugs show "not found") — the
-   seed SQL's `marketstream` slug is the standing example: `02_projects_v3.sql:19-22`
-   references it, but it exists in neither the live API (8 slugs, verified 2026-07-10) nor
-   `fallbackProjects`/`fallbackCaseStudies`. Treat it as a ghost until the owner seeds it.
-
-## CORS
-
-Per `Design/API_HANDOVER_v3.md:363-365`: `akashreya.github.io` and `akashreya.space` must
-remain in the backend's allowed-origins list (unchanged from v2). The frontend sends
-`withCredentials: false` on every call, so no credentialed-CORS complexity. If a browser
-shows CORS errors from a new origin (e.g. a preview host), the fix is backend-side in
-`projectservice` — out of scope here beyond the pointer.
-
-**Localhost is NOT allowlisted** (verified 2026-07-11): the prod API returns **403** to any
-request carrying `Origin: http://localhost:5173` (the browser may surface it as 503). So a
-local dev server pointed at the prod API gets fallbacks for everything — this is CORS policy,
-not an outage. `Invoke-WebRequest`/curl without an Origin header succeeds, which is why the
-API "works from PowerShell but not from the browser". Dev against real data = run the local
-backend and seed it; dev against prod requires adding localhost to the allowlist in
-`projectservice`.
-
-## Known gaps and quirks (facts, not bugs to silently "fix")
-
-| Quirk | Location | Status |
-|---|---|---|
-| Grid `desc` always recruiter voice; `projects` cache not mode-keyed | `client.js:10`, `client.js:63` | **FIXED 2026-07-11** — desc now resolves per-mode at render (see resolution-points table above); cache key intentionally left as-is (no longer needs mode-keying) |
-| Case study doesn't re-voice on mode toggle | `CaseStudyPage.jsx:99` deps `[slug]` | **FIXED 2026-07-11** — deps now `[slug, mode]` |
-| `fetchSite` accepts any shape incl. `{}` | `client.js:49-59` | OPEN — no validation, 10-min cache |
-| 404 case studies cached 5 min | `client.js:103-108` | Deliberate-looking, not touched |
-| `fallbackSitePersonal` lacks `nav`/`enterprise` | `fallback.js:682-736` | **FIXED 2026-07-11** — now references `fallbackSite.nav`/`fallbackSite.enterprise` |
-| Frontend never calls /api/sidequests, /api/ticker | `client.js`, `SideQuests.jsx`, `HeroTicker.jsx` | **FIXED 2026-07-11** — backend seeded (prod) + `fetchSideQuests`/`fetchTicker` wired with fallback mirrors; hardcoded arrays deleted |
-| Prod API 403s browser requests from localhost origins | backend CORS config in `projectservice` | OPEN — dev-vs-prod-API only; deployed origins allowlisted (see CORS section) |
-| `Design/seed_data` JSONs for sidequests/ticker mirror the OLD hardcoded content, not what was actually seeded | `json/side_quests.json`, `json/ticker.json` | OPEN — treat live API as truth, seed JSONs as relics |
-| deploy.yml VITE_API_URL fallback = admin UI | `.github/workflows/deploy.yml:36` | **FIXED 2026-07-11** — fallback now `https://projectsapi.akashreya.space` |
-| `marketstream` in seed SQL only | `02_projects_v3.sql:19-22` | OPEN — ghost slug, backend seed-data issue |
-
-## Provenance and maintenance
-
-All facts verified against the working tree and the live API on **2026-07-11** (sidequests/ticker
-wiring built that day in the working tree — confirm it has since been committed with
-`git log --oneline -- src/sections/SideQuests.jsx`). Re-verify before trusting:
-
-```powershell
-# Endpoint status + seeded-ness (all five should be 200 with len > 2)
-foreach ($ep in 'site','projects','mentions','sidequests','ticker') { $r = Invoke-WebRequest -Uri "https://projectsapi.akashreya.space/api/$ep" -UseBasicParsing -TimeoutSec 15; Write-Output "$ep -> $($r.StatusCode) len=$($r.Content.Length)" }
-
-# Live /api/site shape (top-level 'recruiter','personal' = v3 split; 'brand','hero',... = v2 per-field)
-(Invoke-RestMethod "https://projectsapi.akashreya.space/api/site") | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name
-
-# client.js internals still as documented (pickVoice, cache TTLs, resolveVoice branches)
-Select-String -Path src\api\client.js -Pattern 'TTL_LANDING|TTL_CLICK|recruiter.*personal|case:'
-
-# Sidequests/ticker fetchers exist and components consume them
-Select-String -Path src\api\client.js -Pattern 'fetchSideQuests|fetchTicker'
-Select-String -Path src\sections\SideQuests.jsx,src\sections\HeroTicker.jsx -Pattern 'fetchSideQuests|fetchTicker|fallbackSideQuests|fallbackTicker'
-
-# Localhost still 403'd by prod CORS (expect 403 then 200)
-foreach ($o in 'http://localhost:5173','https://akashreya.space') { try { $r = Invoke-WebRequest -Uri 'https://projectsapi.akashreya.space/api/ticker' -UseBasicParsing -Headers @{ Origin = $o }; Write-Output "$o -> $($r.StatusCode)" } catch { Write-Output "$o -> $($_.Exception.Response.StatusCode.value__)" } }
-
-# Personal-mode flag state
-Get-Content src\config.js
-
-# fallback.js export lines still match
-Select-String -Path src\data\fallback.js -Pattern "^export const"
-
-# CI VITE_API_URL fallback now projectsapi, not admin UI (fixed 2026-07-11)
-Select-String -Path .github\workflows\deploy.yml -Pattern "VITE_API_URL"
-```
+Adding a project or case study on the backend without its fallback entry means it vanishes
+offline (an unknown case-study slug shows "not found"). Verify the mirror by pointing
+`VITE_API_URL` at a dead port and checking every page renders complete.

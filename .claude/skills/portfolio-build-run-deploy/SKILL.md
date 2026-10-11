@@ -1,355 +1,126 @@
 ---
 name: portfolio-build-run-deploy
 description: >
-  Environment setup, dev/build/preview commands, VITE_API_URL wiring, and the
-  live-deploy pipeline for the akashreya-portfolio repo. Load this when: setting
-  up the repo from scratch; running or building the site locally; deciding
-  whether it is safe to push to main (push-to-main IS a live deploy to
-  akashreya.space); anything involving .github/workflows/deploy.yml, GitHub
-  Pages, gh-pages branch, CNAME, or the custom domain; deep links 404ing on the
-  live site (404.html + sessionStorage mechanism); pointing the frontend at a
-  local vs prod backend; .env file confusion; "why does prod hit the wrong API
-  URL"; rollback after a bad deploy. Keywords: npm run dev, vite build, deploy
-  gate, GitHub Actions, VITE_API_URL, CNAME, SPA routing, 404.html, vercel.
+  Owns the deploy gate and live-deploy pipeline for akashreya-portfolio: a push to main is a
+  live deploy to akashreya.space with no staging and no CI tests. Covers the gate checklist,
+  .github/workflows/deploy.yml (build on push and PR, gh-pages deploy on main via peaceiris
+  with force_orphan), rollback, the CNAME custom domain, the 404.html + sessionStorage SPA
+  deep-link trick, env vars (VITE_API_URL, VITE_CDN_URL) in dev and CI, and the dev, build,
+  preview and lint commands. Load when deciding whether it is safe to push to main; touching
+  deploy.yml, GitHub Pages, gh-pages, CNAME or index.html's redirect script; deep links 404ing
+  on the live site; wiring the frontend to a local vs prod backend; .env confusion; prod
+  baking in the wrong API URL; Chikorita missing on the live site; rolling back a bad deploy;
+  setting up the repo from scratch.
 ---
 
-# Build, Run, Deploy — akashreya-portfolio
+# Build, run, deploy
 
-Runbook for taking this repo from a bare clone to a verified live deploy at
-https://akashreya.space. Windows 11 / PowerShell 5.1 native: separate commands
-with `;`, never `&&`.
+`git push origin main` deploys https://akashreya.space within minutes. There is no staging
+environment and CI runs no tests, lint or smoke checks: if it compiles, it ships. All quality
+control is the local gate below.
 
-**The one rule that governs everything here: pushing to `main` deploys the live
-site.** There is no staging environment and no CI test step. Every behavior
-change routes through the deploy gate in section 5.
+## Deploy gate
 
-## When NOT to use this skill
-
-| You are trying to... | Load instead |
-|---|---|
-| Understand why the architecture is shaped this way (voice/theme/mode axes, API-with-fallback invariant) | `portfolio-architecture-contract` |
-| Work with API endpoints, `pickVoice`, shape detection, TTL cache, fallback.js | `portfolio-api-and-fallback` |
-| Triage a bug or crash (React error #31, null crashes, observer churn) | `portfolio-debugging-playbook` |
-| Read visual diffs, update baselines, add screenshot coverage | `portfolio-visual-testing` |
-| Edit theme tokens or site copy | `portfolio-theme-and-content` |
-| Anything personal-mode redesign / launch related | `portfolio-personal-mode-campaign` |
-
-Term disambiguation (one line each — full treatment in
-`portfolio-architecture-contract`): **mode** = recruiter vs personal audience
-(`data-mode` on `<html>`); **theme** = visual token set per mode;
-**voice** = which copy variant of a field renders; **voiced field** = an API
-value shaped `{recruiter: ..., personal: ...}` that must be resolved before
-rendering. This skill only needs "mode" (the test suite screenshots both).
-
-## 1. Prerequisites and setup from scratch
-
-| Requirement | Detail |
-|---|---|
-| Node | Local: Node 24.x (`node -v`). CI builds on Node 18 (`deploy.yml:26`) — at the floor of Vite 6's support range. Don't rely on Node-22+-only syntax in build scripts. |
-| npm | Ships with Node. No pnpm/yarn — lockfile is `package-lock.json`, CI runs `npm ci`. |
-| Browsers for tests | `npx playwright install chromium` (one-time; suite is Chromium-only). |
-| Backend (optional) | Spring-style API at `E:\Work\Code\GitHub\projectservice` (internals out of scope here). Site renders fully offline via `src/data/fallback.js` — see `portfolio-api-and-fallback`. |
-
-```powershell
-cd E:\Work\Code\GitHub\akashreya-portfolio
-npm install
-npx playwright install chromium
-npm run dev    # http://localhost:5173
-```
-
-No `engines` field exists in `package.json`, so npm will not warn you about a
-wrong Node version — check manually.
-
-## 2. VITE_API_URL semantics
-
-`src/api/axios.js:3-10`: if `import.meta.env.VITE_API_URL` is unset, the axios
-base URL falls back to `http://localhost:8080` and logs a console warning.
-Every API call goes through this instance.
-
-Resolution order (Vite standard): **process env var > `.env.[mode].local` >
-`.env.[mode]` > `.env.local` > `.env`**, where Vite's mode is `development`
-for `npm run dev` and `production` for `npm run build`. Baked in at build
-time — changing the env after a build does nothing; rebuild.
-
-State of the env files in this working tree, as of 2026-07-10:
-
-| File | Tracked in git? | Content | Effective? |
-|---|---|---|---|
-| `.env.local` | no (`.gitignore:80`) | `VITE_API_URL=http://localhost:8080` | **YES — this is the file that actually works locally.** UTF-8. |
-| `.env` | no (`.gitignore:76`) | same URL, but **UTF-16 LE encoded** | Inert — Vite's dotenv reads UTF-8; UTF-16 bytes never parse as a key. |
-| `.env.production` | **deleted 2026-07-11** (was tracked, placeholder `https://your-production-api.com`, UTF-16 LE) | Doesn't exist anymore — see below. `.env.example` (value-free, tracked) is the template now. |
-| `.env.example` | **yes, tracked (new 2026-07-11)** | `VITE_API_URL=` (and whatever else a dev adds), no real values | Not read by Vite — it's a documentation template. Copy it to `.env.local` and fill in real values. |
-
-**Encoding trap:** PowerShell 5.1's `Out-File`/`Set-Content` default to UTF-16.
-If you ever write an env file, use `-Encoding utf8` or Vite silently ignores
-it — that is exactly how `.env` and (formerly) `.env.production` became inert.
-
-**Why `.env.production` was deleted rather than fixed (2026-07-11):** it doesn't
-matter what this file contains, because `deploy.yml` sets `VITE_API_URL` as a
-process-level env var on the build step (section 6), and process env always
-wins over every `.env.*` file in Vite's resolution order. So `.env.production`
-only ever affected a bare local `npm run build` run without the env var set —
-a low-value edge case, and one where env files carrying real (even
-non-secret) values shouldn't be tracked in git as a matter of convention.
-`.gitignore` previously listed `.env.production.local` but not plain
-`.env.production` — that gap is why it got committed in the first place; it's
-fixed now. `.env.example` (tracked, no real values) is the template for new
-setups; copy it to `.env.local` and fill in the real URL.
-
-Pointing at each backend:
-
-```powershell
-# Local backend (default — matches .env.local and the axios fallback)
-# 1. Start projectservice (E:\Work\Code\GitHub\projectservice) on port 8080
-# 2. Then:
-npm run dev
-
-# Prod API for one session (process env beats every .env file):
-$env:VITE_API_URL = 'https://projectsapi.akashreya.space'; npm run dev
-```
-
-**URL trap — two similar hostnames, only one is an API:**
-
-| URL | What it is |
-|---|---|
-| `https://projectsapi.akashreya.space` | Backend API (prod). The only valid prod `VITE_API_URL`. |
-| `https://projects.akashreya.space` | **Admin UI** for content entry. NOT an API. Pointing the frontend here returns HTML, every fetch fails, and the site silently renders fallback data. |
-
-Prod-debugging protocol (owner-mandated): never debug prod bugs against the
-prod API first. Run the backend locally, point `VITE_API_URL` at it, reproduce
-there. Details in `portfolio-debugging-playbook`.
-
-## 3. Command anatomy
-
-Scripts from `package.json:7-15`:
-
-| Command | What it does | Notes |
-|---|---|---|
-| `npm run dev` | Vite dev server, `http://localhost:5173`, `host: true` (LAN-reachable), HMR | Port set at `vite.config.js:9`. `strictPort` unset — if 5173 is busy Vite auto-increments to 5174. |
-| `npm run build` | Production build to `dist/` | `base: "/"` (custom domain, not a repo subpath). `manualChunks: undefined` → single JS bundle. `dist/` is gitignored. |
-| `npm run preview` | Serves `dist/` locally | Sanity-check a production build before pushing. Reads the same baked-in `VITE_API_URL`. |
-| `npm run lint` | ESLint over the repo | Not run in CI. |
-| `npm run test:visual` | Playwright visual suite: 2 modes × 7 viewports | The deploy-gate test command. Details in `portfolio-visual-testing`. |
-| `npm run test` | Bare `playwright test` — picks up the 7 `*-preview.spec.ts` files too, which call `page.pause()` and are meant for manual inspection | **Avoid for automation; use `test:visual`.** |
-| `npm run update-baseline` | **FIXED 2026-07-11** — `update-baseline.ps1` deleted (was stale/destructive, verified 2026-07-10: its regexes targeted a spec shape that no longer existed and it would have wiped baselines and copied nothing back). The script now runs `playwright test --update-snapshots tests/playwright-viewport.spec.ts` directly. | Safe to use now — no separate script to distrust. See `portfolio-visual-testing`. |
-
-**Playwright port quirk** (`playwright.config.js:38-42` vs `vite.config.js:9`):
-the suite navigates to and waits on port **5174**, but its `webServer` command
-is `npm run dev`, which serves **5173** when free. Practical recipe — keep your
-manual dev server running on 5173; Playwright's spawned server then
-auto-increments to 5174 and the suite works. On a cold machine with nothing on
-5173, `npm run test:visual` times out waiting for 5174. Workaround:
-
-```powershell
-# terminal 1 — your manual-check server (holds 5173)
-npm run dev
-# terminal 2 — suite spawns its own server, which lands on 5174
-npm run test:visual
-```
-
-`tests/` is entirely gitignored (`.gitignore:159`) — specs and the 77 baseline
-PNGs (35 recruiter + 42 personal) exist only in this working tree, not in git. A fresh clone has no tests
-and no baselines. (This contradicts older docs claiming checked-in baselines;
-the repo wins.)
-
-## 4. What CI does NOT do
-
-`.github/workflows/deploy.yml` runs `npm ci` and `npm run build`. That's all.
-No lint, no Playwright, no smoke test. If it compiles, it ships. All quality
-control is the local gate below — by design, not omission.
-
-## 5. THE DEPLOY GATE (non-negotiable)
-
-`git push origin main` = live deploy to https://akashreya.space within minutes.
 Before any push to `main` that changes behavior:
 
-```
-[ ] 1. Playwright visual suite green:
-        npm run test:visual        (with a dev server on 5173 — see section 3)
-[ ] 2. Manual check on the local dev server:
-        npm run dev  →  open http://localhost:5173
-        - load the home page in recruiter mode, click into a case study,
-          visit /in-the-wild
-        - watch the console for errors (React error #31 = voiced-field
-          regression; see portfolio-debugging-playbook)
-[ ] 3. Both passed → push. Either failed → the push does not happen.
-```
+1. Playwright visual suite green: `npm run test:visual`. Port and server requirements:
+   **portfolio-visual-testing**.
+2. Manual check on `npm run dev` (http://localhost:5173): home page in both modes, one case
+   study, `/in-the-wild`, with the console open. Any React error #31 is a voiced-field
+   regression (**portfolio-debugging-playbook**).
+3. Both pass, then push. Either fails, no push.
 
-Both checks are required — screenshots don't catch console errors or broken
-interactions, and eyeballs don't catch 2560-px layout drift. PR builds run
-(the workflow triggers on `pull_request` too) but only build; the deploy step
-is skipped for PRs.
+Both are required: screenshots miss console errors and broken interactions; eyeballs miss
+layout drift at the extreme viewports.
 
-**Rollback:** the gh-pages branch is force-orphaned every deploy (single
-commit, no history — `deploy.yml:44`), so there is nothing to roll back to on
-gh-pages itself. Rollback = `git revert <bad-commit>` on `main`, run the gate,
-push. The revert redeploys the previous state.
+**Rollback.** gh-pages is force-orphaned on every deploy (one commit, no history), so there
+is nothing to roll back to there. Rollback is `git revert <bad-commit>` on `main`, run the
+gate, push.
 
-## 6. The GitHub Actions pipeline, step by step
+## Commands
 
-File: `.github/workflows/deploy.yml` (45 lines). As of 2026-07-10:
-
-| Step | Line(s) | Detail |
-|---|---|---|
-| Triggers | 3-7 | `push` to `main` (build + deploy) and `pull_request` targeting `main` (build only). |
-| Permissions | 10-13 | `contents: write`, `pages: write`, `id-token: write`. |
-| Checkout | 20-21 | `actions/checkout@v4` |
-| Node | 23-27 | `actions/setup-node@v4`, `node-version: "18"`, npm cache. |
-| Install | 29-30 | `npm ci` |
-| Build | 32-36 | `npm run build` with `VITE_API_URL` from the env block below. |
-| Deploy | 38-44 | `peaceiris/actions-gh-pages@v3`, gated `if: github.ref == 'refs/heads/main'` (line 40), `publish_dir: ./dist`, `force_orphan: true`. Publish branch unspecified → action default `gh-pages`. GitHub Pages serves that branch. |
-
-### The admin-UI fallback misconfiguration — FIXED 2026-07-11
-
-`deploy.yml:36` used to fall back to the admin UI, not the API, when the
-`VITE_API_URL` secret was unset:
-
-```yaml
-# was:
-VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projects.akashreya.space' }}
-# now:
-VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://projectsapi.akashreya.space' }}
-```
-
-This sat "documented, don't fix" for a while (owner-known, low blast radius while
-the secret stays set) but the owner asked to fix it outright: *"it doesn't make
-sense at all to fall back on a UI."* The fallback now points at the real API
-host (section 2), so if the `VITE_API_URL` secret is ever unset or deleted, the
-build falls back to the actual API instead of silently baking in an HTML-serving
-admin UI. Whether the secret is currently set is not verifiable from the working
-tree — check via `gh secret list` or repo Settings → Secrets → Actions; either
-way the fallback is now a sane default rather than a footgun.
-
-Other pipeline notes:
-- `force_orphan: true` rewrites gh-pages history on every deploy — gh-pages
-  is a build artifact, never a source of truth.
-- `origin/gh-pages` tip is an orphan commit of built output; it is not an
-  ancestor of `main`. Never merge or cherry-pick from it.
-
-## 7. Custom domain (CNAME)
-
-- `public/CNAME` contains exactly `akashreya.space`. Vite copies `public/`
-  into `dist/` verbatim, so every force-orphan deploy re-publishes the CNAME
-  file — this is what keeps the custom domain bound. **Deleting or renaming
-  `public/CNAME` unbinds the domain on the next deploy.**
-- `vite.config.js:6` sets `base: "/"` — correct for a custom domain apex.
-  (A `github.io/repo-name` setup would need `base: "/repo-name/"`; not this
-  repo.)
-- **FIXED 2026-07-11:** `package.json` used to carry `"homepage": "https://akashreya.github.io"` —
-  a stale CRA-convention leftover, ignored by Vite, harmless but wrong. The field has been removed.
-
-## 8. SPA routing on GitHub Pages — the 404.html + sessionStorage mechanism
-
-This skill owns the operational detail. GitHub Pages is a static file host
-with no rewrite rules, so a direct request to `/work/some-slug` finds no file
-and serves `404.html`. The workaround is a two-file handshake:
-
-**Step 1 — `public/404.html:5-8`** (served for any unknown path):
-
-```html
-<script>
-  sessionStorage.setItem('spa-redirect', location.pathname + location.search + location.hash);
-  location.replace('/');
-</script>
-```
-
-Saves the full intended URL, then hard-redirects to `/`, which Pages can serve
-(`index.html`).
-
-**Step 2 — `index.html:51-58`** (inline in `<body>`, runs before the React
-module script on line 60):
-
-```html
-<script>
-  // GitHub Pages SPA routing: restore path saved by 404.html
-  var redirect = sessionStorage.getItem('spa-redirect');
-  if (redirect) {
-    sessionStorage.removeItem('spa-redirect');
-    history.replaceState(null, '', redirect);
-  }
-</script>
-```
-
-Restores the saved path via `history.replaceState` — the address bar shows the
-deep link again before React Router mounts, so `BrowserRouter` sees the right
-location and renders the right route. No reload, no history pollution
-(`replaceState`, and the key is removed immediately).
-
-Operational implications:
-- Deep links flash through `/` once (a redirect happens); this is inherent to
-  the trick, not a bug.
-- The restore script must stay **before** `<script type="module"
-  src="/src/main.jsx">` in `index.html`. Moving it after breaks deep linking.
-- `npm run dev` never exercises this path — the Vite dev server has its own
-  SPA fallback. Only the live site (or `npm run preview` + manually opening
-  `dist/404.html` semantics) uses it. Test deep links post-deploy (section 10).
-- Query strings and hashes survive (both are captured in step 1) — theme/mode
-  URL params on deep links keep working.
-
-## 9. The vercel.json dead end
-
-History, 22 minutes total on 2026-06-30 launch night:
-- `77b128e` (01:13) added a `vercel.json` with a single SPA rewrite
-  (`/(.*)` → `/index.html`) — a Vercel hosting attempt for clean SPA routing
-  without the 404 trick.
-- `c0342f3` (01:35) deleted it and added `public/CNAME` — committed to GitHub
-  Pages + custom domain instead.
-
-The commit messages don't record why Vercel was abandoned; owner-confirmed
-"dead end" (2026-07-10). What matters operationally: **there is no Vercel
-deployment.** If you find `vercel.json` in a diff or an agent proposes adding
-one, that's the abandoned path — hosting is GitHub Pages + CNAME + the 404
-trick, full stop.
-
-## 10. Post-deploy verification checklist
-
-Run after every push to `main`, once the Actions run is green
-(https://github.com/akashreya/akashreya-portfolio/actions — or `gh run list
---limit 3`):
-
-```
-[ ] Actions run green (build + deploy steps both succeeded)
-[ ] https://akashreya.space loads; hard-refresh (Ctrl+F5) to bust cache
-[ ] DevTools console: no errors — specifically no minified React error #31
-    and no "VITE_API_URL not set" warning
-[ ] DevTools network: API calls go to projectsapi.akashreya.space and return
-    JSON. Requests to projects.akashreya.space (admin UI) would mean the
-    VITE_API_URL secret is unset — after the 2026-07-11 fix (section 6) this
-    now also falls back to projectsapi.akashreya.space, so seeing admin-UI
-    requests live would mean something else is overriding the URL upstream.
-[ ] Deep link test (exercises the 404 trick, section 8): open
-    https://akashreya.space/in-the-wild directly in a fresh tab — must land on
-    the In The Wild page, not a 404 or the home page
-[ ] Case study deep link: open a /work/<slug> URL directly
-[ ] Content is live API data, not fallback: change something small via the
-    admin UI or compare against src/data/fallback.js — identical-to-fallback
-    everywhere suggests fetches are failing silently
-[ ] Recruiter mode renders (personal mode is feature-flagged OFF as of
-    2026-07-10 — PERSONAL_MODE_ENABLED=false in src/config.js:3; do NOT treat
-    its absence on live as a bug. See portfolio-personal-mode-campaign.)
-```
-
-Note the TTL cache (`portfolio-api-and-fallback`): the client caches API
-responses in memory 5-10 min, but that's per page load — a hard refresh always
-refetches.
-
-## Provenance and maintenance
-
-All facts verified against the working tree at `main` @ `27e7ae0`, 2026-07-10.
-Re-verify the volatile ones before trusting this document:
-
-| Fact | Re-verification (PowerShell, from repo root) |
+| Command | Notes |
 |---|---|
-| npm scripts | `Get-Content package.json -TotalCount 15` |
-| Dev port / base path | `Get-Content vite.config.js` |
-| axios default URL | `Select-String -Path src\api\axios.js -Pattern 'localhost'` |
-| deploy.yml fallback URL (fixed 2026-07-11, expect projectsapi not projects) + node version | `Select-String -Path .github\workflows\deploy.yml -Pattern 'VITE_API_URL\|node-version'` |
-| VITE_API_URL secret set? | `gh secret list` |
-| CNAME content | `Get-Content public\CNAME` |
-| 404 trick intact | `Select-String -Path public\404.html,index.html -Pattern 'spa-redirect'` |
-| Personal mode flag | `Get-Content src\config.js` |
-| tests/ still untracked | `git check-ignore tests/` (prints `tests/` if still ignored) |
-| Playwright port quirk | `Select-String -Path playwright.config.js -Pattern 'port'` |
-| .env.production deleted, .env.example added (fixed 2026-07-11) | `Test-Path .env.production` (expect `False`); `Test-Path .env.example` (expect `True`); `Select-String -Path .gitignore -Pattern '^\.env\.production$'` (expect a hit) |
-| update-baseline.ps1 still deleted (fixed 2026-07-11) | `Test-Path update-baseline.ps1` (expect `False`) |
-| package.json has no stale `homepage` (fixed 2026-07-11) | `Select-String -Path package.json -Pattern 'homepage'` (expect no hits) |
+| `npm run dev` | Vite on port 5173, `host: true` (LAN-reachable), no `strictPort` |
+| `npm run build` | to `dist/` (gitignored); `base: "/"` for the custom-domain apex; single JS bundle (`manualChunks: undefined`) |
+| `npm run preview` | serves `dist/`; same baked-in env values |
+| `npm run lint` | ESLint; not run in CI |
+| `npm run test:visual` | the gate's suite (`tests/playwright-viewport.spec.ts`) |
+| `npm run update-baseline` | regenerates baselines; see **portfolio-visual-testing** first |
+| `npm run test` | bare `playwright test`; also picks up the manual `*-preview.spec.ts` files that call `page.pause()`. Use `test:visual` for automation. |
+
+Setup: `npm install`, `npx playwright install chromium`. Local Node is 24.x; CI builds on
+Node 18 and `package.json` has no `engines` field, so keep build-time code Node 18 compatible.
+`tests/` is gitignored: a fresh clone has no specs or baselines.
+
+## Env vars
+
+Both are read at build time through `import.meta.env`; changing them needs a rebuild.
+
+| Var | Read by | Unset behavior |
+|---|---|---|
+| `VITE_API_URL` | `src/api/axios.js` `getApiUrl` | warns and uses `http://localhost:8080` |
+| `VITE_CDN_URL` | `src/components/Chikorita.jsx` (`${CDN}/site/chikorita/*.png`, no trailing slash) | no buddy: Chikorita renders nothing |
+
+| Where | Values |
+|---|---|
+| `.env.local` (gitignored, UTF-8) | `VITE_API_URL=http://localhost:8080` and the CloudFront `VITE_CDN_URL`. The working dev file. |
+| `.env.example` (tracked) | value-free template; copy to `.env.local` |
+| `.env` (gitignored) | UTF-16 LE, so Vite ignores it. Write env files as UTF-8; PowerShell 5.1 `Out-File`/`Set-Content` default to other encodings. |
+| CI build step | `VITE_API_URL: secrets.VITE_API_URL \|\| 'https://projectsapi.akashreya.space'`; `VITE_CDN_URL: secrets.VITE_CDN_URL` with no fallback on purpose |
+
+One session against the prod API: `$env:VITE_API_URL = 'https://projectsapi.akashreya.space'; npm run dev`.
+Prod CORS 403s localhost origins, so this renders fallbacks; for real data run the local
+backend. Topology (`projectsapi` is the API, `projects.` is the admin UI) and CORS:
+**portfolio-api-and-fallback**.
+
+## CI pipeline (`.github/workflows/deploy.yml`)
+
+| Step | Detail |
+|---|---|
+| Triggers | `push` to `main` (build and deploy); `pull_request` to `main` (build only) |
+| Permissions | `contents: write`, `pages: write`, `id-token: write` |
+| Build | `actions/checkout@v4`, `actions/setup-node@v4` Node 18 with npm cache, `npm ci`, `npm run build` with the env above |
+| Deploy | `peaceiris/actions-gh-pages@v3`, `if: github.ref == 'refs/heads/main'`, `publish_dir: ./dist`, `force_orphan: true`, default branch `gh-pages`; GitHub Pages serves that branch |
+
+gh-pages is a build artifact, not an ancestor of `main`. Never merge or cherry-pick from it.
+Whether the secrets are set is visible only via `gh secret list` or repo settings.
+
+## Custom domain
+
+`public/CNAME` contains `akashreya.space`. Vite copies `public/` into `dist/`, so every
+force-orphan deploy republishes it. Deleting or renaming `public/CNAME` unbinds the domain on
+the next deploy. Hosting is GitHub Pages only; there is no Vercel deployment, and a
+`vercel.json` in a diff is not the hosting path.
+
+## SPA deep links on GitHub Pages
+
+Pages has no rewrite rules, so a direct request to `/work/<slug>` or `/in-the-wild` serves
+`404.html`. Two files hand the path across:
+
+1. `public/404.html` saves `location.pathname + location.search + location.hash` to
+   `sessionStorage['spa-redirect']`, then `location.replace('/')`.
+2. An inline script at the top of `<body>` in `index.html` reads `spa-redirect`, removes it,
+   and calls `history.replaceState(null, '', redirect)` before React Router mounts.
+
+Consequences:
+
+- The restore script must stay before `<script type="module" src="/src/main.jsx">`. Moving
+  it after breaks deep linking.
+- Deep links pass through `/` once; that redirect is inherent.
+- Query strings and hashes survive, so `?mode=`/`?tone=` on deep links keep working.
+- `npm run dev` never exercises this path (Vite has its own SPA fallback). Test deep links on
+  the live site after deploy.
+
+## Post-deploy check
+
+After the Actions run is green (`gh run list --limit 3`):
+
+- https://akashreya.space loads after a hard refresh; console has no error #31 and no
+  `VITE_API_URL not set` warning.
+- Network: API calls go to `projectsapi.akashreya.space` and return JSON.
+- Open `https://akashreya.space/in-the-wild` and a `/work/<slug>` URL directly in fresh tabs:
+  each lands on its page (exercises the 404 trick).
+- Both modes render; Chikorita appears in personal mode (confirms `VITE_CDN_URL` was baked in).
+- Content is live data, not fallback: content identical to `src/data/fallback.js` everywhere
+  suggests fetches are failing silently.
