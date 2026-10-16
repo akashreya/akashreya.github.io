@@ -73,7 +73,6 @@ One backend payload serves both personas, so any text node may arrive voiced. A 
 | Issue | Where | Consequence |
 |---|---|---|
 | Mode-toggle buttons on the case-study and in-the-wild navpills are not gated by `PERSONAL_MODE_ENABLED` (NavPill's is) | `CaseStudyPage`, `InTheWildPage` (`navpill__mode` button) | With the kill switch off they render but do nothing. |
-| `src/config.js` comment still reads as a pre-launch condition ("Flip to true when ...") | `src/config.js` | Misdescribes a live kill switch. |
 
 ## 6. Decision register
 

@@ -9,7 +9,7 @@ description: >
   .map of undefined; reveal elements stuck invisible after a mode toggle or in screenshots;
   mode/tone not persisting or URL params ignored; M or T shortcuts misbehaving; stale API data;
   Chikorita not appearing. Each row names the discriminating check that separates lookalike
-  causes and the rule learned from the incident behind it.
+  causes and the rule behind it.
 ---
 
 # Portfolio debugging playbook
@@ -42,8 +42,7 @@ Skill names above drop the `portfolio-` prefix.
 ## Rule 1: every API string slot passes through voice resolution
 
 `pickVoice` (single field), `deepResolveVoice` (whole tree, case studies) and `resolveVoice`
-(site) in `src/api/client.js` are the only gates. Lessons from the incident that produced
-them, which shipped six deploys for one data-shape mismatch:
+(site) in `src/api/client.js` are the only gates. Working rules for this layer:
 
 - Resolve shapes at read time; do not shape-gate at fetch time. Rejecting unexpected shapes
   made the site fall back wholesale and hid the real data.
