@@ -61,7 +61,10 @@ export default function InTheWildPage() {
   // activeFilter drives the navpill immediately; shownFilter drives the grid and
   // lags by the fade-out, so cards swap while the grid is invisible.
   const [activeFilter, setActiveFilter] = useState('all');
-  const [shownFilter, setShownFilter] = useState('all');
+  // carries the swap count as well as the filter: a swap can land on the filter already
+  // shown (click away and back inside the fade-out), and the fade-in must still run.
+  const [shown, setShown] = useState({ filter: 'all', n: 0 });
+  const shownFilter = shown.filter;
   const { mode, triggerModeTransition } = useTheme();
   const gridRef = useRef(null);
   const swapRef = useRef(0);
@@ -74,13 +77,13 @@ export default function InTheWildPage() {
     setActiveFilter(next);
     const token = ++swapRef.current;
     const grid = gridRef.current;
-    if (!grid || prefersReducedMotion()) { setShownFilter(next); return; }
+    if (!grid || prefersReducedMotion()) { setShown({ filter: next, n: token }); return; }
     grid.getAnimations().forEach(a => a.cancel());
     grid.animate(
       [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(6px)' }],
       { duration: 140, easing: 'ease-in', fill: 'forwards' },
     ).finished
-      .then(() => { if (token === swapRef.current) setShownFilter(next); })
+      .then(() => { if (token === swapRef.current) setShown({ filter: next, n: token }); })
       .catch(() => {}); // cancelled by a newer click
   }
 
@@ -96,7 +99,7 @@ export default function InTheWildPage() {
       [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
       { duration: 220, easing: 'cubic-bezier(.2,.7,.3,1)' },
     );
-  }, [shownFilter]);
+  }, [shown]);
 
   useEffect(() => {
     fetchMentions()
