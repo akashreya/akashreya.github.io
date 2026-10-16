@@ -42,7 +42,7 @@ Handover specs (in `Design/`): `API_HANDOVER_v3.md` is the base; `API_HANDOVER_v
 
 ## Commands
 
-`npm run dev` (port 5173) · `npm run build` · `npm run lint` · `npm run preview` · `npm run test:visual` (7-viewport Playwright suite; `tests/` is gitignored, so specs and baselines live only locally) · `npm run update-baseline`
+`npm run dev` (port 5173) · `npm run build` · `npm run lint` · `npm run preview` · `npm run test:visual` (7-viewport Playwright suite; specs and win32 baselines are tracked in `tests/`, the `*-preview.spec.ts` harnesses are local only) · `npm run update-baseline`
 
 ## Skills
 

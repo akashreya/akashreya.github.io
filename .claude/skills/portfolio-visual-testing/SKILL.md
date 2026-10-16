@@ -29,12 +29,13 @@ This skill covers the Playwright half. The gate itself, pipeline and rollback:
   `DISABLE_ANIMATIONS` before baselines are generated, or it screenshots mid-flight and flakes.
 - Regenerate baselines only for a change you can name and have reviewed (section 5). A refresh to
   make red go green is masking.
-- `tests/` is gitignored: the spec and baselines exist only in this working tree. CI runs no tests.
-  Losing the tree loses the baselines.
+- Specs and baselines are tracked in git; only the `*-preview.spec.ts` harnesses are gitignored.
+  Regenerated baselines ship in the same commit as the change that moved the pixels. CI runs no
+  tests.
 
 ## 1. The suite
 
-- Spec: `tests/playwright-viewport.spec.ts`, the only regression spec. Config: `playwright.config.js`
+- Spec: `tests/playwright-viewport.spec.ts`, the only screenshot regression spec. Config: `playwright.config.js`
   (single Chromium project, `reducedMotion: "reduce"` in `use` and in the project,
   `toHaveScreenshot: { threshold: 0.2 }`, no `maxDiffPixels`).
 - Matrix: `modes = ['recruiter', 'personal']` x 7 viewports = 14 tests, serial. Viewports are set
@@ -169,6 +170,13 @@ New portfolio-page section:
 3. If it animates, add its `DISABLE_ANIMATIONS` rule first.
 4. Generate, review each new PNG, then run `npm run test:visual` twice (determinism check).
 
-New route: the suite only covers `/`; case-study and in-the-wild pages have no coverage. Add a
-sibling spec reusing the viewport array, `DISABLE_ANIMATIONS` and the 5174 URL, and run it
-explicitly (or add a script), since bare `npm run test` drags in the pausing preview specs.
+New route: the suite only covers `/`; case-study and in-the-wild pages have no screenshot
+coverage. Add a sibling spec reusing the viewport array, `DISABLE_ANIMATIONS` and the 5174 URL, and
+run it explicitly (or add a script), since bare `npm run test` drags in the pausing preview specs.
+
+Behavior spec: `tests/in-the-wild-filter.spec.ts` (4 tests, both modes, no screenshots) asserts the
+`/in-the-wild` grid settles at opacity 1 with no held `fill: forwards` animation, after a normal
+filter change and after a click that returns to the shown filter mid fade-out. It sets
+`reducedMotion: 'no-preference'`, because the fade only runs on the animated path. It is not part
+of `test:visual`; run it with `npx playwright test tests/in-the-wild-filter.spec.ts`, dev server on
+5173 first as in section 2.

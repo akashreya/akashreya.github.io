@@ -158,7 +158,7 @@ test-*.png
 .claude/*
 !.claude/skills/
 .playwright-mcp/
-tests/
+tests/*-preview.spec.ts
 
 # Design/: only the v3 API handover specs are tracked
 Design/*

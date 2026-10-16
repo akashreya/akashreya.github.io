@@ -51,7 +51,8 @@ gate, push.
 
 Setup: `npm install`, `npx playwright install chromium`. Local Node is 24.x; CI builds on
 Node 18 and `package.json` has no `engines` field, so keep build-time code Node 18 compatible.
-`tests/` is gitignored: a fresh clone has no specs or baselines.
+`tests/` is tracked except the `*-preview.spec.ts` harnesses, so a fresh clone has the specs and
+the win32 baselines.
 
 ## Env vars
 
