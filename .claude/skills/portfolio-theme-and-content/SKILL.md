@@ -71,7 +71,10 @@ State (`src/theme/ThemeProvider.jsx`): mode init is `?mode=` param, then localSt
 URL params are read once at module load (`_startParams`); changing the URL later needs a reload.
 `setMode` / `setTone` persist to localStorage. `triggerModeTransition(nextMode)` plays the
 `ModeTransition` overlay (`iris` into personal, `curtain` back; mode flips at 260ms, overlay
-clears at 700ms) and switches instantly under `prefers-reduced-motion`.
+clears at 700ms) and switches instantly under `prefers-reduced-motion`. A tone-only change has
+no overlay: `applyTheme` sets `html[data-tone-shift]` for 260ms and `portfolio.css` crossfades
+background, color, border and shadow on the surface selectors listed under that rule (skipped
+under reduced motion).
 
 ### Change or add a token
 
@@ -164,7 +167,8 @@ headings.
 | `HeroTicker` | Margin-notes strip under the personal hero, content doubled for a seamless loop |
 
 `InTheWildPage` staggers `.mention` cards with `.is-dropped` at 70ms intervals in personal mode
-(unrelated to `LetterDrop`).
+(unrelated to `LetterDrop`). In both modes a filter change fades the grid out (140ms), swaps the
+set via `shownFilter`, and fades it back in (220ms); the navpill follows `activeFilter` at once.
 
 **Not approved** (ideas only, need a fresh owner yes): GBA-style dialogue boxes, continue
 screen, dex, trainer card, or anything else from the old concept board. The `emoji` field on

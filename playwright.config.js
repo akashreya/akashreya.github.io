@@ -12,7 +12,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: "html",
+  // open: "never" — the default opens and serves the report on failure, which blocks the
+  // run from exiting; view it with `npx playwright show-report` instead.
+  reporter: [["html", { open: "never" }]],
   use: {
     // Disable animations for consistent screenshots
     reducedMotion: "reduce",

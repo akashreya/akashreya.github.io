@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import '../styles/cs-inspector.css';
+import { scrollToEl } from '../utils/motion';
 
 function isNoteKey(k) {
   return /(_note|_signature|inspector_note|philosophy)$/i.test(k);
@@ -69,7 +70,7 @@ export default function ServiceInspector({
       sect.setAttribute('data-source-key', sourceKey);
       const enter = () => { el.classList.add('is-hot'); sect.classList.add('ins-highlight'); };
       const leave = () => { el.classList.remove('is-hot'); sect.classList.remove('ins-highlight'); };
-      const click = (e) => { e.stopPropagation(); sect.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      const click = (e) => { e.stopPropagation(); scrollToEl(sect); };
       el.addEventListener('mouseenter', enter);
       el.addEventListener('mouseleave', leave);
       el.addEventListener('click', click);

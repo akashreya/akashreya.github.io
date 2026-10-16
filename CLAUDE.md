@@ -22,7 +22,8 @@ React 19 + Vite SPA on GitHub Pages, React Router v7 with three routes: `/` (Por
 | `src/pages/` | the three route pages; CaseStudyPage renders `nav` + `sections[]` through `CaseStudySection` |
 | `src/sections/` | Hero, HeroTerminal (recruiter hero right column), HeroTicker (personal hero margin notes), Projects, SideQuests (personal only), Principles, Enterprise, Footer |
 | `src/components/` | NavPill, TopMark, ThemeHint, SectionHead, Typeset, LetterDrop, ModeTransition, AmbientBlobs, Footprints, Chikorita, CaseStudySection, ServiceInspector (fico-cod-rto only), PokeTypeAtmosphere (poketopia only) |
-| `src/hooks/useReveal.js` | `.reveal` to `.in-view` observer; pass `mode` as a dep where sections remount on mode |
+| `src/hooks/` | `useReveal.js` (`.reveal` to `.in-view` observer; pass `mode` as a dep where sections remount on mode), `usePillIndicator.jsx` (sliding active fill shared by all three navpills) |
+| `src/utils/` | `motion.js` (`prefersReducedMotion`, `scrollToEl`, `rafThrottle`), `text.js` |
 | `src/styles/` | portfolio, case-study, said, cs-inspector, cs-poketypes, mode-transition |
 
 ## API

@@ -7,6 +7,11 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // Playwright writes these mid-run; watching them reloads the page under test and,
+    // on Windows, a locked report file throws an unhandled EBUSY that kills the server.
+    watch: {
+      ignored: ["**/playwright-report/**", "**/test-results/**", "**/*-snapshots/**"],
+    },
   },
   plugins: [react()],
   resolve: {

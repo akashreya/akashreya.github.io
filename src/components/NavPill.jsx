@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../theme/ThemeProvider';
 import { PERSONAL_MODE_ENABLED } from '../config';
-
-function scrollToId(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+import { usePillIndicator } from '../hooks/usePillIndicator';
+import { scrollToEl, rafThrottle } from '../utils/motion';
 
 function useScrollSpy(ids, offset = 140) {
   const [activeId, setActiveId] = useState(ids[0]);
 
   useEffect(() => {
-    function onScroll() {
+    // offsetTop reads force layout; one pass per frame, not per scroll event
+    const onScroll = rafThrottle(() => {
       const y = window.scrollY + offset;
       let current = ids[0];
       for (const id of ids) {
@@ -21,12 +18,13 @@ function useScrollSpy(ids, offset = 140) {
         if (el.offsetTop <= y) current = id;
       }
       setActiveId(prev => (prev === current ? prev : current));
-    }
+    });
 
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
+      onScroll.cancel();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -43,14 +41,16 @@ export default function NavPill({ items }) {
   const targets = (items ?? []).map(item => item.target);
   const activeTarget = useScrollSpy(targets);
   const { mode, triggerModeTransition } = useTheme();
+  const { navRef, indicator, navClass } = usePillIndicator(`${activeTarget}|${targets.join('|')}|${mode}`);
 
   return (
-    <nav className="navpill">
+    <nav className={'navpill' + navClass} ref={navRef}>
+      {indicator}
       {(items ?? []).map(item => (
         <button
           key={item.id}
           className={`navpill__item${activeTarget === item.target ? ' active' : ''}`}
-          onClick={() => scrollToId(item.target)}
+          onClick={() => scrollToEl(document.getElementById(item.target))}
         >
           <span className="navpill__num">{item.num}</span>
           <span className="label">{item.name}</span>

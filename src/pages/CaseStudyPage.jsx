@@ -9,6 +9,8 @@ import ThemeHint from '../components/ThemeHint';
 import ServiceInspector from '../components/ServiceInspector';
 import PokeTypeAtmosphere from '../components/PokeTypeAtmosphere';
 import CaseStudySection, { romanize } from '../components/CaseStudySection';
+import { usePillIndicator } from '../hooks/usePillIndicator';
+import { scrollToEl, rafThrottle } from '../utils/motion';
 
 // The Overview hero + metrics strip aren't part of study.nav[mode] (API_HANDOVER_v3.2 — nav only
 // indexes sections[]), so this synthetic entry is prepended to give the navpill a way back to the
@@ -30,7 +32,8 @@ function useActiveSectionSpy(ids) {
   const [activeSection, setActiveSection] = useState(ids[0]);
 
   useEffect(() => {
-    function onScroll() {
+    // getBoundingClientRect forces layout; one pass per frame, not per scroll event
+    const onScroll = rafThrottle(() => {
       let closest = ids[0];
       let minOffset = Infinity;
       ids.forEach(id => {
@@ -44,11 +47,14 @@ function useActiveSectionSpy(ids) {
         }
       });
       setActiveSection(closest);
-    }
+    });
 
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      onScroll.cancel();
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [ids]);
 
   return activeSection;
@@ -69,6 +75,7 @@ export default function CaseStudyPage() {
   const sectionsById = useMemo(() => new Map((study?.sections ?? []).map(s => [s.id, s])), [study]);
 
   const activeSection = useActiveSectionSpy(ids);
+  const { navRef, indicator, navClass } = usePillIndicator(`${activeSection}|${ids.join('|')}|${mode}`);
 
   useReveal(study);
 
@@ -104,7 +111,7 @@ export default function CaseStudyPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '40vh 56px', color: 'var(--ink3)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+      <div className="cs-loading" style={{ padding: '40vh 56px', color: 'var(--ink3)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
         Loading...
       </div>
     );
@@ -184,12 +191,13 @@ export default function CaseStudyPage() {
         </div>
       </main>
 
-      <nav className="navpill" aria-label="Case-study sections">
+      <nav className={'navpill' + navClass} ref={navRef} aria-label="Case-study sections">
+        {indicator}
         {pills.map(item => (
           <button
             key={item.target}
             className={'navpill__item' + (activeSection === item.target ? ' active' : '')}
-            onClick={() => document.getElementById(item.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            onClick={() => scrollToEl(document.getElementById(item.target))}
           >
             {item.num != null && <span className="navpill__num">{romanize(item.num)}</span>}
             <span className="label">{item.name}</span>

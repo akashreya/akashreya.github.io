@@ -153,3 +153,7 @@
   transition: opacity .3s ease; backdrop-filter: blur(2px);
 }
 .ins-backdrop.open { opacity: 1; pointer-events: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-hint .ins-hint__dot { animation: none; }
+}
