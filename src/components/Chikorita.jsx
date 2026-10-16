@@ -48,7 +48,7 @@ export default function Chikorita() {
     const flip = root.querySelector('.chk-flip');
 
     let x = Math.min(90, window.innerWidth - 120);
-    root.style.left = `${x}px`;
+    root.style.translate = `${x}px 0`;
     Object.values(FRAMES).forEach((src) => { new Image().src = src; });
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -78,7 +78,7 @@ export default function Chikorita() {
       let step = false;
       stepInterval = setInterval(() => { step = !step; setFrame(step ? 'walk' : 'idle'); }, STEP_MS);
       root.style.transitionDuration = `${Math.abs(target - x) / WALK_SPEED}s`;
-      root.style.left = `${target}px`;
+      root.style.translate = `${target}px 0`;
       x = target;
     };
 
@@ -96,7 +96,7 @@ export default function Chikorita() {
     };
 
     const onArrive = (e) => {
-      if (e.propertyName !== 'left' || state !== 'walking') return;
+      if (e.propertyName !== 'translate' || state !== 'walking') return;
       clearInterval(stepInterval);
       root.style.transitionDuration = '0s';
       if (exiting) {
@@ -106,7 +106,7 @@ export default function Chikorita() {
         after(600 + Math.random() * 1400, () => {
           if (state !== 'idle') return;
           x = x < 0 ? window.innerWidth + 40 : -root.offsetWidth - 40;
-          root.style.left = `${x}px`;
+          root.style.translate = `${x}px 0`;
           requestAnimationFrame(() => walkTo(pickTarget()));
         });
         return;

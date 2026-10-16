@@ -12,8 +12,10 @@ html, body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
 body {
@@ -44,7 +46,8 @@ section { scroll-margin-top: 24px; }
   transition: opacity .55s ease-out, transform .55s ease-out;
   will-change: opacity, transform;
 }
-.reveal.in-view { opacity: 1; transform: none; }
+/* release the compositor layer once revealed; the running transition keeps its own */
+.reveal.in-view { opacity: 1; transform: none; will-change: auto; }
 /* Bypass transition for elements that were in the viewport on initial mount —
    transitions pause when document.visibilityState === "hidden" (preview iframes,
    inactive tabs) so we'd otherwise be stuck at opacity 0. */
@@ -120,12 +123,29 @@ section { scroll-margin-top: 24px; }
   letter-spacing: -0.005em;
   transition: background .22s, color .22s;
   white-space: nowrap;
+  position: relative; z-index: 1; /* above .navpill__ind */
+  -webkit-tap-highlight-color: transparent;
 }
 .navpill__item:hover { background: var(--bg2); }
+/* press the content, not the box: usePillIndicator measures the box */
+.navpill__item > * { transition: transform .12s; }
+.navpill__item:active > * { transform: scale(0.94); }
 .navpill__item.active {
   background: var(--accent);
   color: #fff;
 }
+/* sliding active fill (usePillIndicator). Until it has measured, the active
+   item paints its own background, so the pill never renders without a fill. */
+.navpill__ind {
+  position: absolute; top: 0; left: 0; z-index: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  pointer-events: none;
+}
+.navpill__ind.is-live {
+  transition: transform .38s cubic-bezier(.3,.7,.2,1), width .38s cubic-bezier(.3,.7,.2,1);
+}
+.navpill.navpill--ind .navpill__item.active { background: transparent; }
 .navpill__num {
   font-family: var(--font-display);
   font-style: italic;
@@ -445,6 +465,7 @@ section { scroll-margin-top: 24px; }
   transition: transform .25s ease-out, border-color .25s, box-shadow .25s;
 }
 .card:hover { transform: translateY(-3px); }
+.card:active { transform: translateY(-1px) scale(.995); transition-duration: .1s; }
 [data-mode="personal"] .card::before {
   content: ""; position: absolute; top: -40px; right: -40px;
   width: 160px; height: 160px;
@@ -656,10 +677,12 @@ section { scroll-margin-top: 24px; }
 
 /* Chikorita buddy — bottom strip, above chrome (never parks on it, ghost while walking) */
 [data-mode="personal"] .chikorita {
-  position: fixed; bottom: 10px; left: 90px; height: 84px;
+  /* walk position lives on `translate` (compositor-only, composes with the
+     transform keyframes below); Chikorita.jsx sets it and its duration */
+  position: fixed; bottom: 10px; left: 0; translate: 90px 0; height: 84px;
   z-index: 75; user-select: none;
-  transition: left 0s linear;
-  will-change: left, transform;
+  transition: translate 0s linear;
+  will-change: translate;
 }
 [data-mode="personal"] .chikorita img {
   height: 84px; width: auto; display: block;
@@ -753,6 +776,7 @@ section { scroll-margin-top: 24px; }
   box-shadow: 0 24px 60px color-mix(in srgb, var(--accent) 25%, transparent), 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 [data-mode="personal"] .card:hover::before { opacity: 0.35; }
+[data-mode="personal"] .card:active { transform: translateY(-1px) scale(.995); transition-duration: .1s; }
 [data-mode="personal"] .card__title { font-style: normal; font-weight: 400; font-family: var(--font-script); font-size: 34px; letter-spacing: 0; line-height: 1.15; }
 [data-mode="personal"] .badge { border: none; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent2); }
 
@@ -823,7 +847,8 @@ section { scroll-margin-top: 24px; }
 [data-mode="personal"] .navpill {
   border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
 }
-[data-mode="personal"] .navpill__item.active {
+[data-mode="personal"] .navpill__item.active,
+[data-mode="personal"] .navpill__ind {
   background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
 }
 [data-mode="personal"] .navpill__num { font-family: var(--font-mono); font-style: normal; letter-spacing: 0.08em; font-size: 11px; }
@@ -853,3 +878,42 @@ section { scroll-margin-top: 24px; }
 /* Visibility helpers */
 [data-mode="personal"] .ro { display: none !important; }
 [data-mode="recruiter"] .po { display: none !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATE-CHANGE MOTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Tone crossfade: applyTheme sets html[data-tone-shift] for ~260ms on a
+   tone-only change (never under reduced motion). Scoped to surface-bearing
+   selectors so hover transitions elsewhere are untouched; background-image
+   glows cannot interpolate and still swap. */
+html[data-tone-shift] :is(body, .card, .navpill, .navpill__ind, .topmark, .theme-hint, .led, .term, .mention, .sq-node, .enterprise-collapsed) {
+  transition: background-color .26s ease, color .26s ease, border-color .26s ease, box-shadow .26s ease !important;
+}
+
+/* Route change: opacity only. A transform here would make .route the
+   containing block for the fixed navpill/topmark/Chikorita mid-fade. */
+@media (prefers-reduced-motion: no-preference) {
+  .route { animation: route-in .2s ease-out; }
+}
+@keyframes route-in { from { opacity: 0; } }
+
+/* Case-study loader: hidden for the first 150ms, most responses beat it */
+.cs-loading { animation: loader-in .2s ease-out .15s backwards; }
+@keyframes loader-in { from { opacity: 0; } }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — final states, no loops. Page-scoped stylesheets
+   (said, cs-inspector, mode-transition) carry their own block.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; will-change: auto; }
+  .term__dot,
+  [data-mode="personal"] .blob,
+  [data-mode="personal"] .chk-anim,
+  [data-mode="personal"] .chikorita.is-sleeping .chk-z { animation: none; }
+  [data-mode="personal"] .letter-drop > span { opacity: 1; transform: none; animation: none; }
+  /* land on sq-drop's fill-forwards end state at once, so layout matches the animated board */
+  .sq-node[data-pos] { animation-duration: 0s; animation-delay: 0s; }
+}

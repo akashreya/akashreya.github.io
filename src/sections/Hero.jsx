@@ -5,17 +5,12 @@ import Typeset from '../components/Typeset';
 import HeroTerminal from './HeroTerminal';
 import HeroTicker from './HeroTicker';
 import { fallbackSiteRecruiter, fallbackSitePersonal } from '../data/fallback';
-
-function scrollToId(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+import { scrollToEl } from '../utils/motion';
 
 function handleCtaClick(e, href) {
   if (href?.startsWith('#')) {
     e.preventDefault();
-    scrollToId(href.slice(1));
+    scrollToEl(document.getElementById(href.slice(1)));
   }
 }
 

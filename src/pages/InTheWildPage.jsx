@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchMentions } from '../api/client';
 import { fallbackMentions } from '../data/fallback';
@@ -7,6 +7,8 @@ import { useTheme } from '../theme/ThemeProvider';
 import ThemeHint from '../components/ThemeHint';
 import '../styles/said.css';
 import ModeTransition from '../components/ModeTransition';
+import { usePillIndicator } from '../hooks/usePillIndicator';
+import { prefersReducedMotion } from '../utils/motion';
 
 const FILTER_LABELS = {
   all:     'All mentions',
@@ -56,11 +58,45 @@ function MentionCard({ m }) {
 
 export default function InTheWildPage() {
   const [mentions, setMentions] = useState(fallbackMentions);
+  // activeFilter drives the navpill immediately; shownFilter drives the grid and
+  // lags by the fade-out, so cards swap while the grid is invisible.
   const [activeFilter, setActiveFilter] = useState('all');
+  const [shownFilter, setShownFilter] = useState('all');
   const { mode, triggerModeTransition } = useTheme();
   const gridRef = useRef(null);
+  const swapRef = useRef(0);
+  const { navRef, indicator, navClass } = usePillIndicator(`${activeFilter}|${mode}`);
 
-  useReveal(mentions, activeFilter);
+  useReveal(mentions, shownFilter);
+
+  function selectFilter(next) {
+    if (next === activeFilter) return;
+    setActiveFilter(next);
+    const token = ++swapRef.current;
+    const grid = gridRef.current;
+    if (!grid || prefersReducedMotion()) { setShownFilter(next); return; }
+    grid.getAnimations().forEach(a => a.cancel());
+    grid.animate(
+      [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(6px)' }],
+      { duration: 140, easing: 'ease-in', fill: 'forwards' },
+    ).finished
+      .then(() => { if (token === swapRef.current) setShownFilter(next); })
+      .catch(() => {}); // cancelled by a newer click
+  }
+
+  // fade back in once the new set is in the DOM; layout effect so the swap never paints at full opacity
+  const firstShow = useRef(true);
+  useLayoutEffect(() => {
+    if (firstShow.current) { firstShow.current = false; return; }
+    const grid = gridRef.current;
+    if (!grid) return;
+    grid.getAnimations().forEach(a => a.cancel());
+    if (prefersReducedMotion()) return;
+    grid.animate(
+      [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 220, easing: 'cubic-bezier(.2,.7,.3,1)' },
+    );
+  }, [shownFilter]);
 
   useEffect(() => {
     fetchMentions()
@@ -73,15 +109,15 @@ export default function InTheWildPage() {
     const cards = Array.from(gridRef.current.querySelectorAll('.mention'));
     cards.forEach(card => card.classList.remove('is-dropped'));
     cards
-      .filter(card => activeFilter === 'all' || card.dataset.kind === activeFilter)
+      .filter(card => shownFilter === 'all' || card.dataset.kind === shownFilter)
       .forEach((card, i) => {
         setTimeout(() => card.classList.add('is-dropped'), i * 70);
       });
-  }, [mentions, activeFilter, mode]);
+  }, [mentions, shownFilter, mode]);
 
-  const visibleCount = activeFilter === 'all'
+  const visibleCount = shownFilter === 'all'
     ? mentions.length
-    : mentions.filter(m => m.kind === activeFilter).length;
+    : mentions.filter(m => m.kind === shownFilter).length;
 
   return (
     <>
@@ -99,11 +135,11 @@ export default function InTheWildPage() {
         </section>
 
         <div className="sd-filter-status reveal">
-          <span><span className="current">{FILTER_LABELS[activeFilter]}</span></span>
+          <span><span className="current">{FILTER_LABELS[shownFilter]}</span></span>
           <span className="count">{visibleCount} {visibleCount === 1 ? 'card' : 'cards'}</span>
         </div>
 
-        <div className="sd-grid" ref={gridRef} data-filter={activeFilter}>
+        <div className="sd-grid" ref={gridRef} data-filter={shownFilter}>
           {mentions.map(m => (
             <MentionCard key={m.id} m={m} />
           ))}
@@ -120,12 +156,13 @@ export default function InTheWildPage() {
         </div>
       </main>
 
-      <nav className="navpill" aria-label="Filter mentions">
+      <nav className={'navpill' + navClass} ref={navRef} aria-label="Filter mentions">
+        {indicator}
         {FILTERS.map(item => (
           <button
             key={item.filter}
             className={'navpill__item' + (activeFilter === item.filter ? ' active' : '')}
-            onClick={() => setActiveFilter(item.filter)}
+            onClick={() => selectFilter(item.filter)}
           >
             <span className="navpill__num">{item.num}</span>
             <span className="label">{item.label}</span>

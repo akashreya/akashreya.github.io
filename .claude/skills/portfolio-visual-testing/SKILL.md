@@ -86,7 +86,9 @@ that are text-metric-only across every section suggest font timing.
 ## 3. Animation defeat
 
 Two layers. `reducedMotion: "reduce"` makes the page honor `prefers-reduced-motion` (which also
-stops `Footprints` and makes `triggerModeTransition` instant). Then, after `#hero` exists, the spec
+stops `Footprints`, makes `triggerModeTransition` instant, and skips the route fade and tone
+crossfade; the reduced-motion blocks at the end of `portfolio.css`, `said.css`,
+`cs-inspector.css` and `mode-transition.css` settle every entrance and loop at its final state). Then, after `#hero` exists, the spec
 injects `DISABLE_ANIMATIONS` with `page.addStyleTag`. Its rules, exactly:
 
 | Selector | Rule | Neutralizes |

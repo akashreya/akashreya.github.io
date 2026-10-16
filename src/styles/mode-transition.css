@@ -119,3 +119,7 @@
 [data-mode="personal"] .navpill__mode:hover { color: var(--accent); }
 @media (max-width: 900px) { .navpill__mode { padding: 9px 14px; } }
 @media (max-width: 420px) { .navpill__mode { padding: 8px 12px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .navpill__mode-dot { animation: none; }
+}

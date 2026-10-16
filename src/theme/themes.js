@@ -108,6 +108,14 @@ export function applyTheme(modeName, tone) {
   if (!theme) return;
   const root = document.documentElement;
   const tokens = theme[tone];
+  // tone-only change: flag <html> so surfaces crossfade (portfolio.css, html[data-tone-shift]).
+  // mode changes are masked by ModeTransition instead; first paint never animates.
+  if (root.dataset.mode === modeName && root.dataset.tone && root.dataset.tone !== tone
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    root.dataset.toneShift = '';
+    clearTimeout(applyTheme.toneShiftTimer);
+    applyTheme.toneShiftTimer = setTimeout(() => { delete root.dataset.toneShift; }, 260);
+  }
   for (const [k, v] of Object.entries(tokens)) {
     root.style.setProperty('--' + k, v);
   }
